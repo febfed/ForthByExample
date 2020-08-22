@@ -1,0 +1,76 @@
+This took me ages to work out as I kept getting lost in indirection ! However I am now able to add or remove elements from either end of the list. I am also able to print forward or backwards.
+The only advantage of the double pointer is that I do not need to walk the list to find the last but one node.
+anew doublelinked
+\ \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+\ Implementation
+\ \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+: @+ ( a -- n a ) dup @ swap cell+ ;
+: !+ ( n a -- a ) tuck ! cell+ ;
+: cn  ( z y x -- a ) 3 cells allocate throw dup >r !+ !+ ! r> ;
+: -cn ( a -- ) free throw ;
+: b2  ( a -- z y x ) @+ @+ @ swap rot ;
+: >hd ( n a -- )
+    dup @ 0= if >r 0 0 cn dup r> 2! else
+        >r 0 r@ @ cn dup r@ !
+        r> @ @ cell+ !
+    then ;
+: hd> ( a -- n )
+    dup >r @ 0= if abort" Empty" else
+        r@ @ b2 nip dup 0= if drop 0 0 r> 2! else
+            0 over cell+ ! r> !
+        then
+    then ;
+: >tl ( n a -- )
+    dup >r cell+ @ 0= if 0 0 cn dup r> 2! else
+        r@ cell+ @ 0 cn dup r@ cell+ @ !
+        r> cell+ !
+    then ;
+: tl> ( a -- n )
+    dup >r cell+ @ 0= if abort" Empty" else
+        r@ cell+ @ b2 drop dup 0= if drop 0 0 r> 2! else
+            0 over ! r> cell+ !
+        then
+    then ;
+: ppf ( a -- )
+    ." { "
+        @ dup 0= if drop else
+            begin b2 nip dup 0<> while swap . repeat drop .
+        then
+    ." }" ;
+: ppb ( a -- )
+    ." { "
+        cell+ @ dup 0= if drop else
+            begin b2 drop dup 0<> while swap . repeat drop .
+        then
+    ." } " ;
+\ \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+\ Tests
+\ \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+2variable a1
+0 0 a1 2!
+cr 59 random 1+ a1 >hd a1 ppf
+cr 59 random 1+ a1 >hd a1 ppf
+cr 59 random 1+ a1 >hd a1 ppf
+cr 59 random 1+ a1 >hd a1 ppf
+cr 59 random 1+ a1 >hd a1 ppf
+cr 59 random 1+ a1 >hd a1 ppf
+cr a1 tl> . a1 ppf
+cr a1 tl> . a1 ppf
+cr a1 tl> . a1 ppf
+cr a1 tl> . a1 ppf
+cr a1 tl> . a1 ppf
+cr a1 tl> . a1 ppf
+cr
+cr 59 random 1+ a1 >tl a1 ppf
+cr 59 random 1+ a1 >tl a1 ppf
+cr 59 random 1+ a1 >tl a1 ppf
+cr 59 random 1+ a1 >tl a1 ppf
+cr 59 random 1+ a1 >tl a1 ppf
+cr 59 random 1+ a1 >tl a1 ppf
+cr a1 hd> . a1 ppf
+cr a1 hd> . a1 ppf
+cr a1 hd> . a1 ppf
+cr a1 hd> . a1 ppf
+cr a1 hd> . a1 ppf
+cr a1 hd> . a1 ppf
+cr
