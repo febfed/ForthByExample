@@ -1,0 +1,50 @@
+( Lists, stacks and queues )
+vocabulary stack
+vocabulary queue
+vocabulary lisp
+lisp definitions
+vocabulary rd
+vocabulary pr
+vocabulary ev
+: cn ( y x -- p ) 2 cells allocate throw dup >r 2! r> ;
+: -cn ( p -- ) free throw ;
+: hd ( p -- x ) @ ;
+: tl ( p -- y ) cell+ @ ;
+: !hd ( x p -- ) ! ;
+: !tl ( y p -- ) cell+ ! ;
+: atom ( a -- f ) 3 and 0> ;
+: eq ( a -- f ) = ;
+: nil ( a -- f ) dup $FFFFFFFC and 0= ;
+stack definitions also lisp
+: stk      ( name -- a )  create 0 , does> ;
+: isempty  ( s -- f ) @ 0= ;
+: pop      ( s -- n ) dup isempty abort" Stack Empty" dup @ dup 2@ >r rot ! -cn r> ;
+: push     ( n s -- ) tuck @ swap ['] cn catch abort" Stack Full" swap ! ;
+: ps1      ( s -- ) 2@ . begin dup 0<> while 2@ space . repeat drop ;
+: ps       ( s -- ) ." { " dup isempty if drop else @ ps1 then ." }" ;
+: emptystk ( s -- )
+    dup isempty if drop else
+        @ begin dup 2@ drop swap -cn dup 0<> while repeat drop
+    then ;
+forth definitions also stack
+stk p
+: >p ( n -- ) p push ;
+: p> ( -- n ) p pop ;
+queue definitions also lisp
+: que     ( name -- a ) create 0 , does> ;
+: isempty ( q -- f ) @ 0= ;
+: enq     ( n q -- )
+    dup isempty if 0 rot cn dup cn swap ! else
+        0 rot cn swap 2dup @ tl !tl @ !tl
+    then ;
+: deq     ( q -- n )
+    dup isempty abort" Queue Empty"
+    dup @ hd dup 2@ >r dup 0= if  rot ! -cn r> else
+    rot @ !hd -cn r> then ;
+: ps1 ( q -- ) hd 2@ . begin dup 0<> while 2@ space . repeat drop ;
+: ps  ( q -- ) ." [" dup isempty if drop else @ ps1 then ." ]" ;
+forth definitions also queue
+que q
+: >q ( n -- ) q enq ;
+: q> ( -- n ) q deq ;
+forth also stack
