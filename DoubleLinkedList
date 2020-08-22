@@ -1,0 +1,11 @@
+Its been a few years since I looked at double linked lists (dll). There are not easy and the break through for me is to create the structure such that the pointer points to the link forward and backwards, and the data is keep on the other side
+                         +---------+
+     data -->            |         |    
+                         |         |
+                         +---------+     <---- point here 
+                         |         |
+    forward -->          |         |
+                         +---------+
+    backwards--->        |         |
+    link                 |         |                                     
+                         +---------+
