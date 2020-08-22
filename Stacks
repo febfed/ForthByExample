@@ -1,3 +1,5 @@
+-------+-------+-------+-------V-------+-------+-------+-------V-------+-------+-------+-------V-------+-------+-------+-------V
+
 // ------------------------------------------------------------------------
 //
 // Stacks - Implementation one builds a stack as an array.
@@ -12,7 +14,10 @@ emptystack ( s – ) - drop everything
 ?stk ( s – f ) - is the stack empty – should be internal but may prove useful
 ?stkf ( s – f ) - if the stack full – should be internal but may prove useful
 // ------------------------------------------------------------------------
+
+
 ( Implementation #1 )
+
 : stack ( n -- a )
 dup 2 + cells allocate throw ( -- n a )
 tuck ( -- a n a ) !
@@ -38,9 +43,16 @@ begin dup ?stk not while dup pop drop repeat drop ;
 : .ps ( s -- )
 ." [ " dup dpth 0> if dup dpth 0 do dup i cells + @ . loop drop then ." ] " ;
 \ ---------------------------------------------------------------------------
-This was written at a different time hence different style. Its better than the first version because if the stack proves to be small, it will resize which I thought was a good idea.
+
+
+
+This was written at a different time hence different style. Its better than the first version because if the stack proves to be
+small, it will resize which I thought was a good idea.
+
+
 ( Implementation #2 )
 ( Stack as an array )
+
 : stack ( n <name> -- ) ( base, indx, #mxlen )
 create 0 over cells allocate throw , , , does> ;
 : idx cell + ;
@@ -67,10 +79,16 @@ dup i cells + @ .
 loop drop ." ]" ;
 : dpth ( s -- n ) idx @ . ;
 : emptystk ( s -- ) 0 swap idx ! ;
-This one is a little different. It came about because I was trying to implement a lisp. It made me realise that 'cons' essentially builds a stack. A stack is a backward list
+
+
+This one is a little different. It came about because I was trying to implement a lisp. It made me realise that 'cons' 
+essentially builds a stack. A stack is a backward list
+
 Stack and Unstack are new.
 Stack takes 'n' values on forth stack and builds a stack of these
 Unstack put values from my stack back to forth stack
+
+
 (Implementation Three )
 ( ------------------------------------------------------------ )
 ( list .f )
@@ -97,6 +115,9 @@ Unstack put values from my stack back to forth stack
 : stack ( i*x -- a ) depth 0= if 0 else 0 depth 1 do swap cn loop then ;
 : unstack ( a -- i*x ) dup nullp if drop else begin dup hd swap tl dup nullp until drop then ;
 ( ------------------------------------------------------------ )
+
+
+
 \ ---------------------------------------------------------------------------
 Implementation #4
 ( CIRCULAR STACKS )
