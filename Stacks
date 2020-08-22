@@ -1,0 +1,128 @@
+// ------------------------------------------------------------------------
+//
+// Stacks - Implementation one builds a stack as an array.
+//
+// ------------------------------------------------------------------------
+stack ( n – a ) - give it a size and it will build a stack of 'n' cells
+pop ( s – n ) - get value of the top of the stack
+push ( n s – ) - put a value at the top of a stack
+dpth ( s – n ) - how many values on the stack
+emptystack ( s – ) - drop everything
+.ps ( s – ) - print the stack
+?stk ( s – f ) - is the stack empty – should be internal but may prove useful
+?stkf ( s – f ) - if the stack full – should be internal but may prove useful
+// ------------------------------------------------------------------------
+( Implementation #1 )
+: stack ( n -- a )
+dup 2 + cells allocate throw ( -- n a )
+tuck ( -- a n a ) !
+0 over cell+ !
+2 cells + ;
+: (indx) ( a1 -- a2 ) cell - ;
+: (sizeofvec) ( a1 -- a2 ) 2 cells - ;
+: ?stk ( s-- f )
+(indx) @ 0= ;
+: ?stkf ( s-- f )
+dup (indx) @ swap (sizeofvec) @ >= ;
+: pop ( s -- n )
+dup ?stk abort" ERR: Stack empty"
+-1 over (indx) +!
+dup (indx) @ cells + @ ;
+: push ( n s -- )
+dup ?stkf abort" ERR: Stack full"
+tuck dup (indx) @ cells + !
+1 swap (indx) +! ;
+: emptystk ( a -- )
+begin dup ?stk not while dup pop drop repeat drop ;
+: dpth ( s -- n ) (indx) @ ;
+: .ps ( s -- )
+." [ " dup dpth 0> if dup dpth 0 do dup i cells + @ . loop drop then ." ] " ;
+\ ---------------------------------------------------------------------------
+This was written at a different time hence different style. Its better than the first version because if the stack proves to be small, it will resize which I thought was a good idea.
+( Implementation #2 )
+( Stack as an array )
+: stack ( n <name> -- ) ( base, indx, #mxlen )
+create 0 over cells allocate throw , , , does> ;
+: idx cell + ;
+: #len 2 cells + ;
+: ?stk ( s -- f ) idx @ 0= ;
+: ?stkf ( s -- f ) dup #len @ swap idx @ = ;
+: pop ( s -- n )
+dup ?stk abort" Error: Stack empty"
+-1 over idx +!
+dup @ swap idx @ cells + @ ;
+: push1 ( n s -- )
+dup ?stkf abort" Error: Stack full"
+tuck dup @ swap idx @ cells + !
+1 swap idx +! ;
+: push ( n s -- )
+['] push1 catch if ( -- n s )
+dup #len @ 2* over @ over cells resize throw
+rot dup >r ! r@ #len ! r>
+recurse
+then ;
+: .ps ( s -- )
+." [" dup @ swap idx @ 0 ?do
+dup i cells + @ .
+loop drop ." ]" ;
+: dpth ( s -- n ) idx @ . ;
+: emptystk ( s -- ) 0 swap idx ! ;
+This one is a little different. It came about because I was trying to implement a lisp. It made me realise that 'cons' essentially builds a stack. A stack is a backward list
+Stack and Unstack are new.
+Stack takes 'n' values on forth stack and builds a stack of these
+Unstack put values from my stack back to forth stack
+(Implementation Three )
+( ------------------------------------------------------------ )
+( list .f )
+( these implement some basic funcs )
+( I use hd and tl to avoid clashing with car and cdr )
+( note order for args )
+: cn ( y x -- p ) 2 cells allocate throw dup >r 2! r> ;
+: -cn ( p -- ) free throw ;
+: hd ( p -- x ) 2@ nip ;
+: tl ( p -- y ) 2@ drop ;
+: nullp ( a – f ) 0= ;
+( when I first figured these out it was a moment of "wow" )
+( 0 - NIL , n – atom|list )
+( ------------------------------------------------------------ )
+( stack.f )
+( why would I need a stack when I am writing in a stack language )
+( forth has 2 stacks, having more means that I can keep info safe without )
+( having to worry about items clashing and depth etc )
+( needs: cn, -cn, hd, tl, null )
+: ?stk ( s -- flg ) @ nullp ;
+: pop ( s -- n ) dup ?stk if drop abort" ERR: Stack Empty" else dup @ dup >r dup hd swap tl rot ! r> -cn then ;
+: push ( n s -- ) dup @ rot ['] cn catch if abort" ERR: Stack Full" else swap ! then ;
+: emptystk ( s -- ) dup ?stk if drop else begin dup pop drop dup ?stk until drop then ;
+: stack ( i*x -- a ) depth 0= if 0 else 0 depth 1 do swap cn loop then ;
+: unstack ( a -- i*x ) dup nullp if drop else begin dup hd swap tl dup nullp until drop then ;
+( ------------------------------------------------------------ )
+\ ---------------------------------------------------------------------------
+Implementation #4
+( CIRCULAR STACKS )
+: STACK ( N -- A )
+    DUP CELLS ALLOCATE THROW ( N A )
+    3 CELLS ALLOCATE THROW >R
+        DUP R@ ! ( SI )
+        DUP R@ CELL+ ! ( S0 )
+        SWAP CELLS + R@ CELL+ CELL+ ! ( SN )
+    R> ;
+: UNSTACK ( A -- )
+    DUP CELL+ @ FREE THROW
+    FREE THROW ;
+: POP ( S -- N )
+    DUP CELL+ @ OVER @ = IF DUP CELL+ CELL+ @ OVER ! THEN
+    DUP @ CELL- OVER ! @ @ ;
+: PUSH ( N S -- )
+    TUCK @ ! DUP @ CELL+ OVER !
+    DUP CELL+ CELL+ @ OVER @ = IF DUP CELL+ @ SWAP ! ELSE DROP THEN ;
+: .PS ( S -- )
+    ." ( " DUP CELL+ CELL+ @ SWAP CELL+ @
+    DO I @ . CELL +LOOP ." )" ;
+15 STACK VALUE A
+: >A ( N -- ) A PUSH ;
+: A> ( -- N ) A POP ;
+: A. ( -- ) A .PS ;
+\ DEPTH NOT IMPLEMENTED AS IT WOULD BE TOO HARD
+\ PS IS JUST SO THAT I CAN SEE IT WORKING BUT NOT NECESSARY
+\ NO STACK CHECK BECAUSE THE STACK WRAPS ROUND SO THE PROGRAMMER NEEDS TO KEEP TRACK.
