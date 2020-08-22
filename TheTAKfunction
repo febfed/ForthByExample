@@ -1,0 +1,158 @@
+The Tak function
+
+
+I recently came across a blog that brought the TAK function to my attention.
+
+You can find it on wikipedia :
+
+
+\ -------------------------------------------------------------
+
+
+0 [if]
+
+
+from : https://en.wikipedia.org/wiki/Tak_(function)
+
+
+def tak( x, y, z)
+
+    if y < x
+
+            tak(
+
+            tak(x-1, y, z),
+
+            tak(y-1, z, x),
+
+            tak(z-1, x, y)
+
+            )
+
+        else
+
+            z
+
+        end
+
+    end
+
+
+[then]
+
+
+\ -------------------------------------------------------------
+
+
+It seemed easy enough to code up but because there was some stack juggling I decided to write one using locals so that I could practice.
+
+
+The locals version was easy :
+
+
+\ -------------------------------------------------------------
+
+( locals )
+
+
+: ltak { x y z -- }
+
+    cr ." calling x=" x . ." y= " y . ." z= " z .
+
+    y x < if
+
+        x 1- y z recurse   y 1- z x recurse   z 1- x y recurse   recurse
+
+    else z then ;
+
+
+\ -------------------------------------------------------------
+
+
+
+The stack version however threw up a few problems.
+
+
+
+\ -------------------------------------------------------------
+
+
+: 3>r ( s: x y z -- )( r: -- x y z ) >r >r >r ;
+
+: 3r> ( s: -- x y z )( r: x y z -- ) r> r> r> ;
+
+: 3dup ( s: x y z -- x y z x y z ) >r 2dup r@ -rot r> ;
+
+: 3r@ ( s: -- z y x )( r: z y x -- z y x ) 3r> 3dup 3>r ;
+
+: 3rev ( s: x y z -- z y x ) swap rot ;
+
+
+( stack )
+
+: tak ( x y z -- ) ( version 1 )
+
+    3dup 3rev cr ." calling x=" . ." y= " . ." z= " . ." --> " .s
+
+    3dup drop > if
+
+        3dup
+
+        3>r 2>r 1- 2r> recurse         ( x-1 y z )
+
+        3r@ swap 1- swap rot recurse   ( y-1 z x )
+
+        3r> 1- -rot recurse            ( z-1 x y )
+
+        recurse
+
+    else >r 2drop r> then ;
+
+
+\ -------------------------------------------------------------
+
+
+I wrote some helper functions to juggle the stack. Then I wrote the function. It did not work but instead seemed to go into an
+
+infinite recursion.
+
+
+I did a search and discovered Paul Rubin has already posted a solution. There were minor differences between his and mine, so
+
+I rewrote mine again ,
+
+
+\ -------------------------------------------------------------
+
+: tak ( x y z -- ) ( version 2 )
+
+    3dup 3rev cr ." calling x=" . ." y= " . ." z= " . ." --> " .s
+
+    3dup drop > if
+
+        3dup 1- -rot recurse >r          ( z-1 x y )
+
+        3dup swap 1- swap rot recurse >r ( y-1 z x )
+
+        2>r 1- 2r> recurse               ( x-1 y z )
+
+        r> r> recurse
+
+    else >r 2drop r> then ;
+
+
+\ -------------------------------------------------------------
+
+
+and voila it worked.
+
+
+The point being
+
+
+ - You cant stick things on the return stack when you recurse
+
+ - Using locals can simplify code.
+
+
+
