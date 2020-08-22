@@ -1,11 +1,16 @@
+
 ( Lists, stacks and queues )
+
 vocabulary stack
 vocabulary queue
 vocabulary lisp
+
 lisp definitions
+
 vocabulary rd
 vocabulary pr
 vocabulary ev
+
 : cn ( y x -- p ) 2 cells allocate throw dup >r 2! r> ;
 : -cn ( p -- ) free throw ;
 : hd ( p -- x ) @ ;
@@ -15,7 +20,9 @@ vocabulary ev
 : atom ( a -- f ) 3 and 0> ;
 : eq ( a -- f ) = ;
 : nil ( a -- f ) dup $FFFFFFFC and 0= ;
+
 stack definitions also lisp
+
 : stk      ( name -- a )  create 0 , does> ;
 : isempty  ( s -- f ) @ 0= ;
 : pop      ( s -- n ) dup isempty abort" Stack Empty" dup @ dup 2@ >r rot ! -cn r> ;
@@ -26,11 +33,15 @@ stack definitions also lisp
     dup isempty if drop else
         @ begin dup 2@ drop swap -cn dup 0<> while repeat drop
     then ;
+
 forth definitions also stack
+
 stk p
 : >p ( n -- ) p push ;
 : p> ( -- n ) p pop ;
+
 queue definitions also lisp
+
 : que     ( name -- a ) create 0 , does> ;
 : isempty ( q -- f ) @ 0= ;
 : enq     ( n q -- )
@@ -43,8 +54,11 @@ queue definitions also lisp
     rot @ !hd -cn r> then ;
 : ps1 ( q -- ) hd 2@ . begin dup 0<> while 2@ space . repeat drop ;
 : ps  ( q -- ) ." [" dup isempty if drop else @ ps1 then ." ]" ;
+
 forth definitions also queue
+
 que q
 : >q ( n -- ) q enq ;
 : q> ( -- n ) q deq ;
+
 forth also stack
