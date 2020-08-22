@@ -180,8 +180,6 @@ anew main.f only forth
 
 ( --------------------------------------------------------------------------------------------------------)
 
--------+-------+-------+-------V-------+-------+-------+-------V-------+-------+-------+-------V-------+-------+-------+-------V
-
 When defining Module I would write  ....create wordlist ... the reason being you want to read the name and then create the 
 wordlist  However as you will see above it says ...wordlist create .... So why does that make a difference ?
 
