@@ -1,4 +1,3 @@
----------+---------+---------+---------+---------V---------+---------+---------+---------+---------V---------+---------+-------V
 
 This took me ages to work out as I kept getting lost in indirection ! However I am now able to add or remove elements from 
 either end of the list. I am also able to print forward or backwards.
