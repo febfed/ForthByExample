@@ -1,0 +1,147 @@
+Understanding Vocabulary Words ( 1)
+( with a little help from Bruce, Roger, Wolf, Julian, Albert ...)
+( Applies to Win32forth not sure about others as yet )
+( Please read with a copy of dpans 94 to hand section 16 - Optional search order word set and A-16 )
+Overview
+There are two variables, they are CURRENT and CONTEXT. In the current standard it appears you are not meant to access them directly.
+* Current points to the vocabulary where new definitions are added
+* Context points to the vocabulary to search.  Context appears to point to a stack of wordlists.( you can expect minimum of 8 )
+Words
+( a) Order , Vocabulary, Definitions, Also, Previous , Forth, Only
+( b) wordlist forth-wordlist, get-current, get-order, set-current, set-order
+( c) find, search-wordlist
+For this text I will ignore (c)
+Learning
+(1) You can see the current order by using Order to display 
+eg
+> order
+Context: FORTH FORTH ROOT
+Current: FORTH  ok
+(2) forth - adds forth to the searchlist ie to CONTEXT
+(3) only - sets the minimum search order ie search stack is empty
+That is why you will commonly see "only forth" as a common phrase  as this is the baseline
+> only forth   ok
+> order
+Context: FORTH ROOT
+Current: FORTH  ok
+(4) To define a new vocabulary use Vocabulary <name>. This will create <name> in the vocabulary pointed to by CURRENT
+(5) Definitions makes the first wordlist in the search order to the current ie  simplistically ==> context @ current !
+ 
+(6) Also and Previous are a strange pair of words.
+They behave live dup and drop but act on the vocabulary stack.
+Also          <==> dup
+Previous <==> drop
+The reason why you need to duplicate the top wordlist is because when you try to switch to the wordlist what it does it replace whatever is on the stack and replace it with the new one.
+> vocabulary example1  ok
+> order
+Context: FORTH FORTH ROOT
+Current: FORTH  ok
+> also example1 order
+Context: EXAMPLE1 FORTH FORTH ROOT
+Current: FORTH  ok
+So thats the reason why I use "also example1 order" rather than "example1 order".
+"Example1 order" will give an error because forth is dropped and the system doesnt know how to run order any more.
+Notice that calling example1 only affects the context but not the current.
+Calling previous will drop Example1 and hence reset it back to what it was.
+> previous order
+Context: FORTH FORTH ROOT
+Current: FORTH  ok
+Recently I had a problem where I wanted to treat files as if they were modules. 
+What I wanted was file2 and file3 to appears within file1.
+I wanted to define a word 'a' in both file2 and file3 and be able to access them separately.
+All of this is possible using words in group a however it took me a while to get to grips with understanding and with a little help
+( ------------------------ file1---------------------------------------- )
+anew main.f
+Vocabulary File1
+ also file1 definitions
+                               cr .( #1 ) order
+  include file2.f cr .( #2a ) order
+  include file3.f cr .( #3a ) order
+  also file2 a previous
+  also file3 a previous
+  + ."  = " . cr
+ previous definitions
+( ------------------------ file2---------------------------------------- )
+vocabulary file2
+ also file2 definitions
+  cr .( #2 ) order
+  : a ( -- ) cr ." Module 2 =" 19 dup . cr ;
+ previous definitions
+( ------------------------ file3---------------------------------------- )
+vocabulary file3
+ also file3 definitions
+  cr .( #3 ) order
+  : a ( -- ) cr ." Module 3 =" 45 dup . cr ;
+ previous definitions
+( ---------------------------------------------------------------------- )
+First, indentation for is appearance not necessary
+Second, this is an example hence names used are short.
+Third, liberal use of 'order' is simply to show how the context and current change
+Fourth, notice how also and previous appears in pairs
+( -------------------------------------- OUTPUT------------------------------------------------------ )
+> forth words
+----------- FORTH -----------------------------------------------------------------------
+FILE1                MAIN.F              EXAMPLE1            >WIN32FORTHIDE     
+>WINED               SYSTEMEDITOR        EMPTY               FORTHBOOT          
+Interrupted!
+-----------------------------------------------------------------------------------------
+> order
+Context: FORTH FORTH ROOT
+Current: FORTH  ok
+> also file1 words
+----------- FILE1 -----------------------------------------------------------------------
+FILE3                FILE2              
+-----------------------------------------------------------------------------------------
+> also file2 words
+----------- FILE2 -----------------------------------------------------------------------
+A                   
+-----------------------------------------------------------------------------------------
+> previous also file3  words
+----------- FILE3 -----------------------------------------------------------------------
+A                   
+-----------------------------------------------------------------------------------------
+( -----------------------------------END-OUTPUT------------------------------------------------------ )
+ 
+*** Additionally note that if I miss the previous after trying to access 'a' in file 2 and then file3 the reason the program doesnt fail is because
+( -------------------------------------- OUTPUT------------------------------------------------------ )
+anew main.f
+Vocabulary File1
+ also file1 definitions
+                  cr .( #1 ) order
+  include file2.f cr .( #2a ) order
+  include file3.f cr .( #3a ) order
+  also file2 a
+  also file3 a
+  cr .( #4 ) order
+  + ."  = " . cr
+ previous definitions
+#4
+Context: FILE3 FILE2 FILE1 FORTH FORTH ROOT
+Current: FILE1 64
+ ok
+( -----------------------------------END-OUTPUT------------------------------------------------------ )
+... both file 2 and file3 are known about in the search order and this the individual 'a's can be located.
+One Last Word
+Inspired by what I had learnt I decided to write "modules" for forth using the more "lower level" words from group (b)  *** This one should have been easy but took me a good few days  to work out and whilst on hindsight  is obvious I want to point it out so it will help the next person avoid that trap
+( --------------------------------------------------------------------------------------------------------)
+anew main.f only forth
+: >context ( wid -- ) >r get-order r> swap 1+ set-order ;
+: context> ( -- wid ) get-order swap >r 1- set-order r> ;
+: context@ ( -- wid ) get-order over >r set-order r> ;
+: |module wordlist create dup , dup >context set-current
+ does> @ >context ;
+: |end-module context> drop context@ set-current ;
+|module file1
+                   cr .( #1 ) order
+  include file2.f cr .( #2a ) order
+  include file3.f cr .( #3a ) order
+  file2 a
+  file3 a
+  cr .( #4 ) order
+  cr + .(  = ) . cr
+|end-module
+( --------------------------------------------------------------------------------------------------------)
+When defining Module I would write  ....create wordlist ... the reason being you want to read the name and then create the wordlist  However as you will see above it says ...wordlist create .... So why does that make a difference ?
+See the definition of create ! Because create does not allocate extra space which is then taken by wordlist if it follows immediately ie
+with create wordlist - points to the definition of wordlist
+with wordlist create - allocates the pointer to the data field correctly.
