@@ -1,0 +1,930 @@
+( SAVING FILE FOR REFERENCE )
+( AS IT WILL NO LONGER BE AVAILABLE ON GOOGLE GROUPS )
+
+
+Effective February 22, 2024, Google Groups will no longer support new Usenet content. Posting and subscribing will be disallowed, and new content from Usenet peers will not appear. Viewing and searching of historical data will still be supported as it is done today.
+seeking a special Forth
+
+( ---------------------------------------------------------------------------------------------------------------- )
+
+DavidM
+Jun 28, 2008, 1:23:55 PM
+
+
+Hi,
+
+Does anyone know of a Forth implementation that:
+
+- is written almost entirely in forth, save for the absolutely
+smallest possible number of primitives
+- has its handful of primitives written in highly portable C:
+- can compile for 32-bit or 64-bit, little or big-endian
+- is ANS compliant
+- has a good C API, easy to add a small number of extra C
+primitives
+
+I've been working with FICL - it has around 12k lines of C - I'd be
+curious to work with a Forth with only a few hundred (or even a few
+dozen) lines of C.
+
+Thanks in advance
+
+Dave
+
+( ---------------------------------------------------------------------------------------------------------------- )
+
+sp...@controlq.com
+Jun 28, 2008, 11:09:58 PM
+
+
+Having implemented a couple of Forth's in C, it begs the question, just
+what is the minimal wordset with which you can bootstrap a Forth
+implementation? Is there any literature on this?
+
+
+---- Posted via Pronews.com - Premium Corporate Usenet News Provider ----
+http://www.pronews.com offers corporate packages that have access to 100,000+ newsgroups
+
+( ---------------------------------------------------------------------------------------------------------------- )
+
+foxchip
+Jun 29, 2008, 12:03:59 AM
+
+
+On Jun 28, 5:23 am, DavidM <nos...@nowhere.com> wrote:
+> Does anyone know of a Forth implementation that:
+>
+> - is written almost entirely in forth, save for the absolutely
+> smallest possible number of primitives
+
+Minimal ANS Forth and eForth have a small number of primitives.
+But there is a tradeoff with performance that drops off rather
+steeply when the number of primitives drops below the minimal
+practical number.
+
+It is a little like asking what is the minimal instruction set.
+It is an academic question not a practical one. In reality no
+one uses the absolute minimum. eForth is more mature and more
+complete than MAF and has a few more primitives. About 80% of
+code can easily consist of nothing but about 30 primitives and
+when you drop below that code size will go up considerably and
+performance will drop considerably.
+
+> - has its handful of primitives written in highly portable C:
+
+There is a version of eForth with primitives in C. You can
+combine those primitives with any other version of eForth you
+choose.
+
+> - can compile for 32-bit or 64-bit, little or big-endian
+
+eForth has 16/32/64 bit versions with little more than a
+declaration, and handles endian issues.
+
+> - is ANS compliant
+
+Both MAF and eForth are standard.
+
+> - has a good C API, easy to add a small number of extra C
+> primitives
+
+The C version of eForth should meet those needs and can be
+mixed with later versions of the high level code easily.
+
+> I've been working with FICL - it has around 12k lines of C - I'd be
+> curious to work with a Forth with only a few hundred (or even a few
+> dozen) lines of C.
+
+eForth typically has only a couple of hundred lines of assembler for
+the primitives. I haven't counted the lines of C code for primitives.
+
+Most people assemble the kernel and then compile the rest from high
+level Forth. Some people convert the whole thing to assembler and
+some convert the kernel to C. Some people metacompile the whole
+thing from Forth.
+
+The eForth 1.x series was DTC or IDTC while the 2.x through 5.x and
+beyond may be STC or STC with native code inlining. A peephole
+optimizer
+can be added easily to most any version. There are also several
+porting
+manuals for eForth and porting is pretty easy.
+
+> Thanks in advance
+>
+> Dave
+
+Best Wishes
+
+( ---------------------------------------------------------------------------------------------------------------- )
+
+Robert Miller
+Jun 29, 2008, 4:08:58 AM
+
+
+<sp...@controlq.com> wrote in message
+news:alpine.BSF.1.10.0...@saddam.controlq.com...
+
+>
+> Having implemented a couple of Forth's in C, it begs the question, just
+> what is the minimal wordset with which you can bootstrap a Forth
+> implementation? Is there any literature on this?
+>
+
+I don't know how relevant this might be to modern implementations, but about
+thirty years ago the answer to that question was IIRC sixteen. We had been
+looking at Forth for a 6809 based test system and our software guru (not me)
+found a paper somewhere that identified the minimum wordset from which the
+whole language could be built. It took him only a week to get a limited
+version of FORTH up and running. MVP Forth was the model on which the
+implementation was expanded. It was only another couple of weeks until the
+whole language was implemented. Frequently used words were later recoded in
+assembly language.
+
+Bob
+
+( ---------------------------------------------------------------------------------------------------------------- )
+
+Oyster
+Jun 29, 2008, 9:13:39 AM
+
+
+what about www.xs4all.nl/~thebeez/4tH/foldtree.html
+
+( ---------------------------------------------------------------------------------------------------------------- )
+
+The Beez'
+Jun 29, 2008, 9:15:40 AM
+
+
+On 28 jun, 14:23, DavidM <nos...@nowhere.com> wrote:
+> I've been working with FICL - it has around 12k lines of C - I'd be
+> curious to work with a Forth with only a few hundred (or even a few
+> dozen) lines of C.
+Well, 4tH is about 5.5K lines of code, but it was written as a
+library, so take what you need. Furthermore, it was designed to be
+highly portable and easily interface with C. Whether 16, 32 or 64 bit
+- 4tH won't care.
+
+It comes with a 100 page development guide, so changing it shouldn't
+be a problem. There is even a mechanism to take your personal
+enhancements from one version to the next.
+
+http://www.xs4all.nl/~thebeez/4tH
+
+Hans Bezemer
+
+( ---------------------------------------------------------------------------------------------------------------- )
+
+sp...@controlq.com
+Jun 29, 2008, 9:54:40 PM
+
+
+On Sat, 28 Jun 2008, Robert Miller wrote:
+
+> I don't know how relevant this might be to modern implementations, but about
+> thirty years ago the answer to that question was IIRC sixteen. We had been
+> looking at Forth for a 6809 based test system and our software guru (not me)
+> found a paper somewhere that identified the minimum wordset from which the
+> whole language could be built. It took him only a week to get a limited
+> version of FORTH up and running. MVP Forth was the model on which the
+> implementation was expanded. It was only another couple of weeks until the
+> whole language was implemented. Frequently used words were later recoded in
+> assembly language.
+>
+> Bob
+
+Any links to that paper? The question is not how many, but which ones?
+
+( ---------------------------------------------------------------------------------------------------------------- )
+
+billy
+Jul 1, 2008, 3:29:44 PM
+
+
+foxchip <f...@ultratechnology.com> wrote:
+> DavidM <nos...@nowhere.com> wrote:
+> > Does anyone know of a Forth implementation that:
+> >  - is written almost entirely in forth, save for the absolutely
+> >    smallest possible number of primitives
+
+> It is a little like asking what is the minimal instruction set.
+
+
+> It is an academic question not a practical one.  In reality no
+
+The absolute minimum number of instructions for a stack-based language
+is two (http://www.eecs.usma.edu/webs/people/okasaki/pubs.html#jfp03).
+Unfortunately, with that small of an instruction set there's no room
+for numbers (although you can implement numbers as 'Church numerals').
+
+Sorry, just heard the word "academic". Now _this_ is academic.
+Definitely not practical.
+
+I'm just finishing off a little interpreter (written in Python, sorry)
+for such a language. Somewhat interestingly, it's more fun to program
+in than Unlambda. (I'm afraid that establishes a very, VERY low level
+of "fun to program".)
+
+-Wm
+
+( ---------------------------------------------------------------------------------------------------------------- )
+
+Coos Haak
+Jul 1, 2008, 4:20:25 PM
+
+
+Op 29 Jun 2008 00:23:55 +1200 schreef DavidM:
+
+Lennart Benschop implemented a virtual 32 bit processor with 32 5 bit
+opcodes, see:
+http://www.xs4all.nl/~lennartb/forth.html
+
+I've implemented a variant of it with 6 bit opcodes and short 5 bit
+opcodes. This is a 32 bit virtual processor that runs on 16 bit DOS.
+
+See also various Forth processors in Philip Koopman's essay:
+http://www.ece.cmu.edu/%7Ekoopman/stack_computers/index.html
+-- 
+Coos
+
+( ---------------------------------------------------------------------------------------------------------------- )
+
+DavidM
+Jul 1, 2008, 9:04:47 PM
+
+
+On Sat, 28 Jun 2008 16:03:59 -0700, foxchip wrote:
+
+> There is a version of eForth with primitives in C. You can combine
+> those primitives with any other version of eForth you choose.
+
+The eForth developer's site makes no mention of a C version. Google
+searches are coming up blank. Do you know where I can find this C verison?
+
+Cheers
+Dave
+
+( ---------------------------------------------------------------------------------------------------------------- )
+
+Albert van der Horst
+Jul 1, 2008, 11:56:15 PM
+
+
+I would ask for a practical minimum of primitives.
+E.g. you probably need a primitive for subtraction.
+You could have addition building onto subtraction,
+but in practice you are making your Forth more complicated that way.
+I have ported ciforth a few times now . An extra primitive here
+and there where -- in assembler -- ADD is replaced by XOR or
+whatever doesn't cost effort.
+
+The effort in porting is in how to link and make an executable,
+and you demand that C solves that for you. In fact you are going
+the gforth way.
+gforth however has not great simplicity, but aims at being a
+system with a good practical usability, and portability.
+
+I guess that your best bet is starting out with FICL and simplify
+it in your direction. If someone had done that, he would have
+stepped forward by now. In my experience transforming a Forth
+system using a regression test like the Hayes suite and a
+source control system is not too difficult.
+
+
+>
+>Thanks in advance
+>
+>Dave
+>
+
+Groetjes Albert
+
+--
+-- 
+Albert van der Horst, UTRECHT,THE NETHERLANDS
+Economic growth -- like all pyramid schemes -- ultimately falters.
+albert@spe&ar&c.xs4all.nl &=n http://home.hccnet.nl/a.w.m.van.der.horst
+
+( ---------------------------------------------------------------------------------------------------------------- )
+
+jch
+Jul 2, 2008, 2:55:16 AM
+
+_____
+Hans,
+
+Is there anyone you know who has compiled 4tH on an OpenBSD (3.9 and up)
+system? I just pulled down the generic Unix code and will try to do
+"make" in the source directory.
+-- 
+Regards / JCH
+
+( ---------------------------------------------------------------------------------------------------------------- )
+
+jch
+Jul 2, 2008, 3:06:48 AM
+
+
+_____
+Yes, the generic Unix Makefile's contents are suitable for an OBSD
+system. Compiles with only a few warnings. Runs the 4th executable
+just fine. I just don't know yet how to work with it. Need to read the
+manual first.
+-- 
+Regards / JCH
+
+( ---------------------------------------------------------------------------------------------------------------- )
+
+pml5...@gmail.com
+Jul 2, 2008, 4:22:59 AM
+
+
+DavidM wrote:
+
+Well, not quite that, but a few years ago I came across an eforth
+implemented in an early version of Perl, 4.0 I think, at the Perl
+archive CPAN. That should be straightforward to rework into C. But I
+couldn't find it last time I looked for it (also some time back).
+
+Related: I once heard of a highly cut down version of Forth Inc.'s
+polyforth called picoforth, with things like DROP and DUP implemented
+using @ and ! and temporary variables. Maybe someone can track that
+down. P.M.Lawrence.
+
+( ---------------------------------------------------------------------------------------------------------------- )
+
+Stephen Pelc
+Jul 2, 2008, 11:52:40 AM
+
+
+On Sat, 28 Jun 2008 18:09:58 -0400, sp...@controlq.com wrote:
+
+>On Sat, 29 Jun 2008, DavidM wrote:
+>
+>> Hi,
+>>
+>> Does anyone know of a Forth implementation that:
+>>
+>> - is written almost entirely in forth, save for the absolutely
+>> smallest possible number of primitives
+>> - has its handful of primitives written in highly portable C:
+>> - can compile for 32-bit or 64-bit, little or big-endian
+>> - is ANS compliant
+>> - has a good C API, easy to add a small number of extra C
+>> primitives
+>>
+>> I've been working with FICL - it has around 12k lines of C - I'd be
+>> curious to work with a Forth with only a few hundred (or even a few
+>> dozen) lines of C.
+>>
+>> Thanks in advance
+>>
+>> Dave
+>
+>Having implemented a couple of Forth's in C, it begs the question, just
+>what is the minimal wordset with which you can bootstrap a Forth
+>implementation? Is there any literature on this?
+
+Most versions of VFX Forth (Windows, Linux, DOS) use about 30 coded
+definitions. The DOS versions use more because of hard-coded interrupt
+calls. This matches quite well with comments from others.
+
+However, David's first requirement requires a Forth compiler of
+some form. If there are only 30 well-defined primitives, I suggest
+that their portability is of dubious virtue. Most of the portable
+Forths I've seen have become unmaintainable because of the vast
+number of conditional compilation switches in the C layer.
+
+The intermediate Forth compiler to glue the Forth source to
+the primitives is essentially a Forth cross compiler, however
+implemented. That implementation has a big impact on many
+qualities of the resulting Forth.
+
+If one can isolate the primitives, and document them, then
+producing a primitives files for each implementation should be
+a minor exercise. The specification is the major exercise.
+
+Stephen
+
+-- 
+Stephen Pelc, steph...@mpeforth.com
+MicroProcessor Engineering Ltd - More Real, Less Time
+133 Hill Lane, Southampton SO15 5AF, England
+tel: +44 (0)23 8063 1441, fax: +44 (0)23 8033 9691
+web: http://www.mpeforth.com - free VFX Forth downloads
+
+( ---------------------------------------------------------------------------------------------------------------- )
+
+The Beez'
+Jul 2, 2008, 12:54:53 PM
+
+
+On 2 jul, 03:55, jch <j...@nowhere.net> wrote:
+> Is there anyone you know who has compiled 4tH on an OpenBSD (3.9 and up)
+> system?  I just pulled down the generic Unix code and will try to do
+> "make" in the source directory.
+I don't get an update on each and every release, but yes, 4tH is known
+to work on BSD (amoungst others). Most *nix systems do just fine.
+
+Hans Bezemer
+
+( ---------------------------------------------------------------------------------------------------------------- )
+
+pml5...@gmail.com
+Jul 2, 2008, 2:20:30 PM
+
+
+pml540...@gmail.com wrote:
+
+> DavidM wrote:
+>
+> > On Sat, 28 Jun 2008 16:03:59 -0700, foxchip wrote:
+> >
+> > > There is a version of eForth with primitives in C. You can combine
+> > > those primitives with any other version of eForth you choose.
+> >
+> > The eForth developer's site makes no mention of a C version. Google
+> > searches are coming up blank. Do you know where I can find this C verison?
+>
+> Well, not quite that, but a few years ago I came across an eforth
+> implemented in an early version of Perl, 4.0 I think, at the Perl
+> archive CPAN. That should be straightforward to rework into C. But I
+> couldn't find it last time I looked for it (also some time back).
+
+Aha! This may be it or something like it, though the one I came across
+had more comments and acknowledged that it was based on eforth:
+http://search.cpan.org/~petergal/PGForth1.3/Language/PGForth.pm -
+P.M.Lawrence.
+
+( ---------------------------------------------------------------------------------------------------------------- )
+
+foxchip
+Jul 2, 2008, 3:20:12 PM
+
+
+On Jul 1, 1:04 pm, DavidM <nos...@nowhere.com> wrote:
+> The eForth developer's site makes no mention of a C version. Google
+> searches are coming up blank. Do you know where I can find this C verison?
+
+There is a minimum for what has to be written in Forth, and a minimum
+for
+has to be written in something other than Forth. Those minimum are
+zero.
+Bill prefers to use a Forth metacompiler and Forth assembler for
+primitives.
+
+Goggle "c eforth" for primitives in assembler or binary for linking in
+a
+C build, threaded Forth converted to C, and C library hooks for
+further
+expansion with more C functions.
+
+Best Wishes
+
+( ---------------------------------------------------------------------------------------------------------------- )
+
+astrobe
+Jul 2, 2008, 5:42:41 PM
+
+
+It's kindof a Forth dialect but 4IM (http://astrobe.byethost31.com) is
+<1KLOC for its core VM (written in C). It has about 50 C primitives.
+The whole C source is about 5KLOC. I think it will slim down in the
+future. It has (IMHO :) a good C API; I've already written a wrapper
+for a GUI lib, sockets, serial comm both for Linux ans Windows, plus
+other ones for proprietary libraries. And I'm currently writting a
+wrapper for the Irrlicht 3D engine.
+
+Amicalement,
+Astrobe
+
+( ---------------------------------------------------------------------------------------------------------------- )
+
+Brad Eckert
+Jul 2, 2008, 6:08:29 PM
+
+
+On Jun 28, 5:23 am, DavidM <nos...@nowhere.com> wrote:
+>
+>  - is written almost entirely in forth, save for the absolutely
+>    smallest possible number of primitives
+>  - has its handful of primitives written in highly portable C:
+>     - can compile for 32-bit or 64-bit, little or big-endian
+>  - is ANS compliant
+>  - has a good C API, easy to add a small number of extra C
+>    primitives
+>
+There's Fminus on Sourceforge. It's a Forth to C (or asm) cross
+compiler that generates a VM that executes bytecodes. CODE words
+consist of C text. The resulting VM is one file containing a bytecode
+ROM and a switch statement of CODE primitives. If you're trying to put
+a minimal-footprint Forth on an embedded target, it may be useful.
+
+Brad
+
+( ---------------------------------------------------------------------------------------------------------------- )
+
+Rod Pemberton
+Jul 2, 2008, 10:10:25 PM
+
+<sp...@controlq.com> wrote in message
+news:alpine.BSF.1.10.0...@saddam.controlq.com...
+> On Sat, 29 Jun 2008, DavidM wrote:
+> > Does anyone know of a Forth implementation that:
+> >
+> > - is written almost entirely in forth, save for the absolutely
+> > smallest possible number of primitives
+> > - has its handful of primitives written in highly portable C:
+> > - can compile for 32-bit or 64-bit, little or big-endian
+> > - is ANS compliant
+> > - has a good C API, easy to add a small number of extra C
+> > primitives
+> >
+> > I've been working with FICL - it has around 12k lines of C - I'd be
+> > curious to work with a Forth with only a few hundred (or even a few
+> > dozen) lines of C.
+> >
+>
+> Having implemented a couple of Forth's in C, it begs the question, just
+> what is the minimal wordset with which you can bootstrap a Forth
+> implementation?
+
+Sorry for the delay, gone for a few... Anyway, I've been collecting info on
+that. I'll post the relevant info below my sig. The counts should be taken
+as "being 95-99% close" not as "100% exact". (IIRC, I posted some of this
+previously) First, the FORTH primitives info I have is listed. (I'm
+missing info on C. Moore's machine FORTH and I haven't counted the complete
+ANS wordset...). Second, there are some other languages, API's, etc., to
+provide a rough comparison. Third, I've listed the primitives used by a few
+smaller FORTHs, LISPs, BF, etc.
+
+> Is there any literature on this?
+
+No, not that I'm aware of. The info I've provided below is the most
+complete I've ever seen. I became interested in the smallest set of
+functionality needed to implement C, but I found much more on FORTH
+"primitives" at first.
+
+HTH,
+
+Rod Pemberton
+PS. I have not kept track of the FORTH's below. But, if you need me to try
+to relocate it, just say so.
+
+---
+FORTH Primitives Comparison (use a fixed width font)
+---
+3 primitives - Frank Sargent's "3 Instruction Forth"
+9 primitives - Mark Hayes theoretical minimal Forth bootstrap
+9,11 primitives - Mikael Patel's Minimal Forth Machine (9 minimum, 11 full)
+13 primitives - theoretical minimum for a complete FORTH (Brad Rodriguez)
+16,29 primitives - C. Moore's word set for the F21 CPU (16 minimum, 29 full)
+20 primitives - Philip Koopman's "dynamic instruction frequencies"
+23 primitives - Mark Hayes MRForth
+25 primitives - C. Moore's instruction set for MuP21 CPU
+36 primitives - Dr. C.H. Ting's eForth, a highly portable forth
+46 primitives - GNU's GFORTH for 8086
+58-255 functions - FORTH-83 Standard (255 defined, 132 required, 58 nucleus)
+60-63 primitives - considered the essence of FORTH by C. Moore (unknown)
+72 primitives - Brad Rodriguez's 6809 CamelForth
+74-236 functions - FORTH-79 Standard (236 defined, 147 required, 74 nucleus)
+94-229 functions - fig-FORTH Std. (229 defined, 117 required, 94 level zero)
+133-? functions - ANS-FORTH Standard (? defined, 133 required, 133 core)
+200 functions - FORTH 1970, the original Forth by C. Moore
+240 functions - MVP-FORTH (FORTH-79)
+~1000 functions - F83 FORTH
+~2500 functions - F-PC FORTH
+
+FIXME 27 ? - C. Moore's MachineForth
+
+For comparison:
+---
+8 commands - BrainFuck (small,Turing complete language)
+8 primitives - Stutter LISP
+8 primitives - LISP generic
+11 functions - OS functions Ritchie & Thompson PDP-7 and/or PDP-11 Unix
+14 primitives - LISP McCarthy based
+18 functions - OS functions required by P.J. Plauger's Standard C
+Library
+19 functions - OS functions required by Redhat's newlib C library
+28 opcodes - LLVA - Low Level Virtual instruction set Architecture
+51-56 functions - CP/M 1.3 (36-41 BDOS, 15 BIOS)
+56 functions - CP/M 2.2 (39 BDOS, 17 BIOS)
+40 syscalls - Linux v0.01 (67 total, 13 unused, 14 minimal, 40
+complete)
+71 opcodes - LLVM - Low Level Virtual Machine instructions
+92+ functions - MP/M 2.1 (92 BDOS, ? BIOS)
+102 functions - CP/M 3.0 (69 BDOS, 33 BIOS)
+~120 functions - OpenWATCOM v1.3, calls - DOS, BIOS, DPMI for PM DOS apps.
+150 syscalls - GNU HURD kernel
+170 functions - DJGPP v2.03, calls - DOS, BIOS, DPMI for PM DOS apps.
+206 bytecodes - Java Virtual Machine bytecodes
+290 syscalls - Linux Kernel 2.6.17 (POSIX.1)
+
+eForth primitives (9 optional)
+----
+doLIT doLIST BYE EXECUTE EXIT next ?branch branch ! @ C! C@ RP@ RP! R> R@ >R
+SP@ SP! DROP DUP SWAP OVER 0< AND OR XOR UM+ TX!
+?RX !IO $CODE $COLON $USER D$ $NEXT COLD IO?
+
+9 MRForth bootstrap theoretical
+----
+@ ! + AND XOR (URSHIFT) (LITERAL) (ABORT) EXECUTE
+
+9 Minimal Forth (3 optional)
+----
+>r r> 1+ 0= nand @ dup! execute exit
+drop dup swap
+
+23 MRForth primitives
+----
+C@ C! @ ! DROP DUP SWAP OVER $>$R R$>$ + AND OR XOR (URSHIFT) 0$<$ 0=
+(LITERAL) EXIT (ABORT) (EMIT) (KEY)
+
+20 Koopman high execution, Dynamic Freq.
+----
+CALL EXIT EXECUTE VARIABLE USER LIT CONSTANT 0BRANCH BRANCH I @ C@ R> >R
+SWAP DUP ROT + = AND
+
+46 Gforth
+----
+:DOCOL :DOCON :DODEFER :DOVAR :DODOES ;S BYE EXECUTE BRANCH ?BRANCH LIT @ !
+C@ C! SP@ SP! R> R@ >R RP@ RP! + - OR XOR AND 2/ (EMIT) EMIT? (KEY) (KEY?)
+DUP 2DUP DROP 2DROP SWAP OVER ROT -ROT UM* UM/MOD LSHIFT RSHIFT 0= =
+
+36 eForth
+-------
+BYE ?RX TX! !IO doLIT doLIST EXIT EXECUTE next ?branch branch ! @ C! C@ RP@
+RP! R> R@ >R SP@ SP! DROP DUP SWAP OVER 0< AND OR XOR UM+ $NEXT D$ $USER
+$COLON $CODE
+
+BrainFuck
+-------
+> < + - . , [ ]
+
+Stutter LISP
+----
+car cdr cons if set equal lambda quote
+
+generic LISP
+----
+atom car cdr cond cons eq lambda quote
+
+LISP, McCarthy based
+----
+and atom car cdr cond cons eq eval lambda nil quote or set t
+
+( ---------------------------------------------------------------------------------------------------------------- )
+
+DavidM
+Jul 2, 2008, 11:07:26 PM
+
+
+Wow, what a goldmine - thanks heaps for that! :)
+
+Dave
+
+( ---------------------------------------------------------------------------------------------------------------- )
+
+Elizabeth D Rather
+Jul 2, 2008, 11:31:33 PM
+
+
+Rod Pemberton wrote:
+...
+
+> Sorry for the delay, gone for a few... Anyway, I've been collecting info on
+> that. I'll post the relevant info below my sig. The counts should be taken
+> as "being 95-99% close" not as "100% exact". (IIRC, I posted some of this
+> previously) First, the FORTH primitives info I have is listed. (I'm
+> missing info on C. Moore's machine FORTH and I haven't counted the complete
+> ANS wordset...). Second, there are some other languages, API's, etc., to
+> provide a rough comparison. Third, I've listed the primitives used by a few
+> smaller FORTHs, LISPs, BF, etc.
+...
+
+> ---
+> FORTH Primitives Comparison (use a fixed width font)
+> ---
+> 3 primitives - Frank Sargent's "3 Instruction Forth"
+> 9 primitives - Mark Hayes theoretical minimal Forth bootstrap
+> 9,11 primitives - Mikael Patel's Minimal Forth Machine (9 minimum, 11 full)
+> 13 primitives - theoretical minimum for a complete FORTH (Brad Rodriguez)
+> 16,29 primitives - C. Moore's word set for the F21 CPU (16 minimum, 29 full)
+> 20 primitives - Philip Koopman's "dynamic instruction frequencies"
+> 23 primitives - Mark Hayes MRForth
+> 25 primitives - C. Moore's instruction set for MuP21 CPU
+> 36 primitives - Dr. C.H. Ting's eForth, a highly portable forth
+> 46 primitives - GNU's GFORTH for 8086
+> 58-255 functions - FORTH-83 Standard (255 defined, 132 required, 58 nucleus)
+> 60-63 primitives - considered the essence of FORTH by C. Moore (unknown)
+> 72 primitives - Brad Rodriguez's 6809 CamelForth
+> 74-236 functions - FORTH-79 Standard (236 defined, 147 required, 74 nucleus)
+> 94-229 functions - fig-FORTH Std. (229 defined, 117 required, 94 level zero)
+> 133-? functions - ANS-FORTH Standard (? defined, 133 required, 133 core)
+> 200 functions - FORTH 1970, the original Forth by C. Moore
+> 240 functions - MVP-FORTH (FORTH-79)
+> ~1000 functions - F83 FORTH
+> ~2500 functions - F-PC FORTH
+>
+> FIXME 27 ? - C. Moore's MachineForth
+
+Bear in mind that the fact that a word is designated as "nucleus" or
+"core" in the various standards has nothing to do with whether it's a
+"primitive" in the sense of a word that's defined in assembler, C, or
+another language and necessary to implement enough of the Forth VM to
+function.
+
+Like MPE, FORTH, Inc. writes its systems entirely in Forth and Forth
+assembler, using a cross-compiler to bootstrap a new platform. There
+are relatively few assembler "primitives" in our system, but we base the
+decision as to which should be coded in assembler only partly on
+necessity, and mostly on performance issues. And even that is
+influenced by the fact that we're compiling to machine code with an
+optimizer.
+
+We confine these words (plus other platform-specific issues such as
+configuration, startup, etc.) to specific files, so the chore of porting
+to a new platform just requires recoding those files and the rest of the
+files that make up the system are unchanged.
+
+Cheers,
+Elizabeth
+
+-- 
+==================================================
+Elizabeth D. Rather (US & Canada) 800-55-FORTH
+FORTH Inc. +1 310.999.6784
+5959 West Century Blvd. Suite 700
+Los Angeles, CA 90045
+http://www.forth.com
+
+"Forth-based products and Services for real-time
+applications since 1973."
+==================================================
+
+( ---------------------------------------------------------------------------------------------------------------- )
+
+Rod Pemberton
+Jul 3, 2008, 1:27:38 AM
+
+
+"Elizabeth D Rather" <era...@forth.com> wrote in message
+news:a5ednTzymc1bnPHV...@supernews.com...
+
+Yes, thanks for the reminder. But, I believe the ones with "core" and
+"nucleus" do say "functions" instead of "primitives"... While that's
+probably not FORTH proper terminology, I didn't proclaim them to be
+"primitives".
+
+
+Rod Pemberton
+
+( ---------------------------------------------------------------------------------------------------------------- )
+
+John Passaniti
+Jul 4, 2008, 12:19:57 AM
+
+Rod Pemberton wrote:
+> 3 primitives - Frank Sargent's "3 Instruction Forth"
+
+That is a Forth only in the most abstract sense possible.
+
+But I do have one to add to your list that I've mentioned before in the
+past. The 1992 Obfuscated C Code Contest offered "buzzard.2" which
+bootstraps a small near-Forth language from 16 primitives (13 visible, 3
+internal) implemented in about 700 characters of C code. This
+implements a virtual machine which then bootstraps into the near-Forth
+from source that, except for the first few lines, is Forth. It's
+interesting to see how some of the lowest-level primitives are built-up.
+
+Removing the obfuscation also removes the joy and fun of the contest,
+but leaves a small virtual machine that can be loaded on embedded
+systems very easily and provide a good Forth-like environment for
+interactively bringing hardware up. I wouldn't use it for anything
+serious because like most of these reduced-primitive Forths, it's pretty
+slow. But it gets the job done.
+
+You can find the code here:
+
+http://www.ioccc.org/years.html#1992
+
+( ---------------------------------------------------------------------------------------------------------------- )
+
+foxchip
+Jul 4, 2008, 8:11:53 PM
+
+On Jul 2, 2:10 pm, "Rod Pemberton" <do_not_h...@nohavenot.cmm> wrote:
+> (I'm missing info on C. Moore's machine FORTH
+
+A complete history with details of the evolution of machine Forth
+dialects through Sh-Boom, P20, P21, P8, P32, I21, f21, and c18 can
+be found at or linked from
+http://www.ultratechnology.com
+latest on c18 at http://www.IntellaSys.net
+
+Sh-Boom had eight-bit opcodes and P20 on used five-bit opcodes. P20
+had skip opcodes which were placed by 10-bit paged branches in P21
+which had 25 opcodes. F21 changed 2/ to change bit-19 and added
+more branching modes, addressing opcodes and coprocessors expanding
+the instruction set to 28 including !p+. C18 added the B register
+opcodes, added 2/ to the +* opcode, and added ;: coroutine.
+
+Different opcode names were used in different software. Chuck's
+original P21 machineForth used more one character names than are
+in common use today. I always found writing down and grouping
+the opcodes to be a useful exercise.
+~ means not present in an instruction set.
+
+orig p21 F21 C18 c18-colorforth
+
+\ stack
+. nop nop . .
+t dup dup dup dup
+t! drop drop drop drop
+s over over over over
+
+\ math-logic
+nd and and and and
+or or xor xor or \ all exclusive
+- com com not -
+2/ 2/ 2/ 2/ 2/ \ top two bits don't change on P21
+2* 2* 2* 2* 2*
++ + + + +
+* +* +* +* +* \ C18 includes 2/
+
+\ addressing
+a a a@ a@ a
+a! a! a! a! a!
+! ! !a !a !
+!+ !+ !a+ !a+ !+
+@ @ @a @a @
+@+ @+ @a+ @a+ @+
+
+n lit # @p+ @p+
+~ ~ !p+ !p+ !p+
+
+~ ~ @r+ ~ ~
+~ ~ !r+ ~ ~
+
+~ ~ ~ b! b!
+~ ~ ~ @b @b
+~ ~ ~ !b !b
+
+\ return-stack
+r @r r> pop pop
+!r !r >r push push
+
+\ branch
+T0 T0 if if if \ until while
+C0 CO -if -if -if \ -until -while
+: call call call call
+jump jump jump jump jump \ else
+; ; ; ; ;
+~ ~ ~ ;: ;:
+~ ~ ~ next next
+~ ~ ~ unext unext
+
+I still sometimes use the original machineForth dialect
+for brevity, or a version where most Forth words are
+one character.
+
+Older Forth hardware design is covered in Koopman's online
+book on Stack Machines.
+
+Best Wishes
+
+( ---------------------------------------------------------------------------------------------------------------- )
+
+jacko
+Jul 9, 2008, 9:06:04 PM
+
+
+hi
+
+Very comprehensive. MID4th is upto 70 primitives, but if files is
+removed then this reduces somewhat. I do intend to reduce this number
+of the comming weeks, as the aim is to make it portable to custom
+hardware as easily as possible. I will place boot options to control
+which sections of the dictionary are compiled in.
+
+I think @1+ 1-! AND + XOR as register to register one and two argument
+functions to be defined in C is about the simplest virtual machine.
+Even though - is kind of more primitive than +, + can be used to do
+LSHIFT. a+a=a<<1 but a-a=0
+
+U/MOD and U* can be made faster as an example by direct coding, but
+both can be built from U*/ (as I call it) which can be found described
+on http://indi.hpsdr.com/system32.html and I am sure there are other
+refactorings possible.
+
+I hope to get MID4th down to 64 primitives with a full feature set.
+It uses the fact that 2 buffers exsist in high memory to indicate
+primitives, but this does prevent execution of xts from these buffers.
+It does make 16 bit truncation of the dictionary for storage much
+easier though when a 64K address space is used.
+
+
+cheers
+
