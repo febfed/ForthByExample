@@ -1,0 +1,311 @@
+( SAVING FILE FOR REFERENCE )
+( AS IT WILL NO LONGER BE AVAILABLE ON GOOGLE GROUPS )
+
+( ---------------------------------------------------------------------------------------------------------------- )
+
+Mark Carroll <MC>
+
+Aug 16, 1990, 6:13:11 PM
+
+I'm considering writing up a very small Forth for fun. Of course,
+being a little bit crazy, I have absolutely no "real" reference
+on Forth. (I've got the manual to Amiga MultiForth, source
+to AForth, source to tile, and a fragmented basis12.)
+
+What I'm wondering is: what is the absolute minimum set of words
+necessary to create a forth interpreter? That is, what minimum
+set of words would I need to be able to write all of the other
+words in Forth?
+
+For anyone who cares, I'll probably do this on my Amiga. (There's
+a very outside chance that I might dare to try it on the Suns,
+but I doubt it. I'd rather not muck about in machine language
+across the network.)
+
+<MC>
+
+--
+|Mark Craig Carroll: <MC> |"We the people want it straight for a change;
+|Soon-to-be Grad Student at| cos we the people are getting tired of your games;
+|University of Delaware | If you insult us with cheap propaganda;
+|car...@udel.edu | We'll elect a precedent to a state of mind" -Fish
+
+( ---------------------------------------------------------------------------------------------------------------- )
+
+Mikael Patel
+
+Aug 16, 1990, 8:14:01 PM
+
+Hi, Carroll, interesting question your are asking! I asked myself the
+same question last year and went looking for the "real" minimal set,
+in gates and all. Below is a simulator which run what I think is a real
+minimal set (9 primitives are needed: 1+, 0=, nand, >r, r>, @, !, exit,
+call). This is a toy simulator to get to understand the selection of
+minimal instruction set computers (MISC is not RISC). The simulator
+runs in my C-based kernel TILE Forth (Sun-machines etc.)
+
+To answer you question; you should ask yourself what you wish to run
+and what are the typical high frequency low level operations. Also
+you should try to place the most frequently accessed data in registers
+and as close to the processor as possible. For a threaded Forth
+interpreter using registers for top of stack, the intruction pointer,
+the stack pointers, and index registers for I and I' is sufficient.
+
+If you take the Forth-83 glossary you only have to implement
+about 35-50 of them on the machine code level and the rest on forth
+level to get nice and fast forth interpreter. The selection of virtual
+machine registers and the threading method (next) is very important,
+also to leave the right "hooks" for multi-tasking.
+
+On a 68K-processor I like to the following direct threaded next to
+implement a 16-bit forth:
+
+SP EQ A7 ; parameter stack pointer
+RP EQ A6 ; return stack pointer
+IP EQ A5 ; instruction (thread) pointer
+KP EQ A4 ; kernel segment pointer for relocation
+TOS EQ D7 ; top of parameter stack register
+I EQ D6 ; current index
+I' EQ D5 ; last index
+
+MACRO NEXT
+MOVE.W (IP)+, D0 ; Fetch next thread
+JMP (D0, KP) ; And branch to the code field
+END.MACRO
+
+DOVARIABLE:
+MOVE.W (SP), D0 ; Swap the variable address on stack
+MOVE.W TOS, (SP) ; with the stack register
+MOVE.W DO, TOS
+NEXT
+
+DOCONSTANT:
+MOVE.W (SP), D0 ; Swap the constant address on stack
+MOVE.W TOS, (SP) ; with the stack register
+MOVE.W (DO, KP), TOS ; Relocate and fetch value
+NEXT
+
+DOCOLON:
+MOVE.W IP, -(SP) ; Push instruction pointer
+MOVE.W (SP)+, IP ; Pop the new instruction pointer
+NEXT
+
+All primitives contain code starting at the code field address. A
+colon definition has the following code field:
+
+COLONDEFINITION:
+JSR DOCOLON(KP)
+
+All interpreted words have symmetrical code fields. With top of
+stack in a register the primitive arithmetic operation become
+easy. Here's an example of the definition of "+".
+
+DOADD:
+ADD.W (SP)+, TOS
+NEXT
+
+Happy Hunting.....
+
+Mikael R.K. Patel
+Researcher and Lecturer
+Computer Aided Design Laboratory (CADLAB)
+Department of Computer and Information Science
+Linkoping University, S-581 83 LINKOPING, SWEDEN
+
+Phone: +46 13281821
+Telex: 8155076 LIUIDA S Telefax: +46 13142231
+Internet: m...@ida.liu.se	UUCP: {uunet,mcsun,...}!liuida!mip
+Bitnet: MIP@SELIUIDA SUNET: LIUIDA::MIP
+
+- - - - - - - CUT HERE: File: minimal.f83 (tile forth) - - - - - - - - - - -
+
+.( Loading Minimal Forth Machine definitions...) cr
+
+vocabulary minimal
+
+minimal definitions
+
+forth
+
+\ Hardware Devices: Registers and Stacks
+: register ( -- ) create 0 , does> @ ;
+: -> ( x -- ) ' >body [compile] literal compile ! ; immediate compilation
+: stack ( n -- ) create here swap 2+ cells allot here over cell + ! here swap ! ;
+: push ( x s -- ) cell negate over +! @ ! ;
+: pop ( s -- x) dup @ @ cell rot +! ;
+: .stack ( s -- ) dup cell + @ swap @ ?do i @ . cell +loop ;
+
+\ Forth Machine Registers
+register ir ( Instruction register)
+register ip ( Instruction pointer)
+16 stack rp ( Return address stack)
+register tos ( Top of stack register)
+16 stack sp ( Parameter stack)
+
+\ Dump machine state
+: .registers ( -- )
+." ir: " ir .name space
+." ip: " ip cell - .
+." rp: " rp .stack
+." tos: " tos .
+." sp: " sp .stack cr ;
+
+\ Forth Machine Instructions
+: instruction ( n -- ) create ;
+: decode ( -- ) minimal [compile] ['] forth ; immediate compilation
+
+instruction 1+
+instruction 0=
+instruction NAND
+instruction >R
+instruction R>
+instruction !
+instruction @
+instruction EXIT
+instruction HALT
+
+: CALL ( -- ) ip rp push ir >body -> ip ;
+
+\ The Minimal Forth Machine
+: fetch-instruction ( -- ir) ip @ dup -> ir ip cell + -> ip ;
+: processor ( -- )
+begin
+fetch-instruction
+.registers
+case
+decode 1+ of tos 1+ -> tos endof
+decode 0= of tos 0= -> tos endof
+decode NAND of sp pop tos and not -> tos endof
+decode >R of tos rp push sp pop -> tos endof
+decode R> of tos sp push rp pop -> tos endof
+decode ! of sp pop tos ! sp pop -> tos endof
+decode @ of tos @ -> tos endof
+decode EXIT of rp pop -> ip endof
+decode HALT of true abort" HALT" endof
+CALL
+endcase
+again ;
+
+: run ( addr -- ) -> ip 0 -> tos ." RUN" cr processor ;
+
+\ A simple compiler for the Minimal Forth Machine
+
+minimal
+
+: CREATE ( -- ) create ;
+: COMPILE ( -- ) compile compile ; immediate
+
+: DEFINE ( -- ) CREATE ] ;
+: END ( -- ) COMPILE EXIT [compile] [ ; immediate
+: BLOCK ( n -- ) cells allot ;
+: DATA ( -- ) , ;
+
+\ Variable management
+
+DEFINE [VARIABLE] ( -- addr) R> END
+: VARIABLE ( -- addr) CREATE COMPILE [VARIABLE] 1 BLOCK ;
+
+\ Constant management
+
+DEFINE [CONSTANT] ( -- n) R> @ END
+: CONSTANT ( n -- ) CREATE COMPILE [CONSTANT] DATA ;
+
+\ Basic stack manipulation functions
+
+VARIABLE TEMP
+
+DEFINE DROP ( x -- ) TEMP ! END
+DEFINE DUP ( x -- x x) TEMP ! TEMP @ TEMP @ END
+DEFINE SWAP ( x y -- y x) TEMP ! >R TEMP @ R> END
+DEFINE ROT ( x y z -- y z x) >R SWAP R> SWAP END
+DEFINE OVER ( x y -- x y x) >R DUP R> SWAP END
+DEFINE R@ ( -- x) R> R> DUP >R SWAP >R END
+
+\ Logical function
+
+DEFINE BOOLEAN ( x -- flag) 0= 0= END
+DEFINE NOT ( x y -- z) DUP NAND END
+DEFINE AND ( x y -- z) NAND NOT END
+DEFINE OR ( x y -- z) NOT SWAP NOT NAND END
+DEFINE XOR ( x y -- y) OVER OVER NOT NAND >R SWAP NOT NAND R> NAND END
+
+\ Primitive arithmetric functions
+
+DEFINE 1- ( x -- y) NOT 1+ NOT END
+DEFINE 2+ ( x -- y) 1+ 1+ END
+DEFINE 2- ( x -- y) NOT 2+ NOT END
+
+\ Cell sizes and functions
+
+4 CONSTANT CELL
+DEFINE CELL+ ( x -- y) 1+ 1+ 1+ 1+ END
+
+\ Branch instructions
+
+DEFINE (BRANCH) ( -- ) R> @ >R END
+DEFINE (?BRANCH) ( flag -- ) 0= DUP R@ @ AND SWAP NOT R> CELL+ AND OR >R END
+
+\ Compiler functions
+
+: >MARK ( -- addr) here 0 , ;
+: >RESOLVE ( addr -- ) here swap (forth) ! ;
+: <MARK ( -- addr) here ;
+: <RESOLVE ( -- addr) , ;
+
+: IF ( flag -- ) COMPILE (?BRANCH) >MARK ; immediate
+: ELSE ( -- ) COMPILE (BRANCH) >MARK swap >RESOLVE ; immediate
+: THEN ( -- ) >RESOLVE ; immediate
+: BEGIN ( -- ) <MARK ; immediate
+: WHILE ( flag -- ) COMPILE (?BRANCH) >MARK ; immediate
+: REPEAT ( -- ) COMPILE (BRANCH) swap <RESOLVE >RESOLVE ; immediate
+: UNTIL ( flag -- ) COMPILE (?BRANCH) <RESOLVE ; immediate
+
+\ Simple arithmetrical functions
+
+DEFINE U+ ( x y -- z) BEGIN DUP WHILE 1- SWAP 1+ SWAP REPEAT DROP END
+DEFINE NEGATE ( x -- y) NOT 1+ END
+DEFINE U- ( x y -- ) BEGIN DUP WHILE 1+ SWAP 1- SWAP REPEAT DROP END
+
+\ Literal numbers in code
+
+DEFINE (LITERAL) ( -- ) R> DUP @ SWAP CELL+ >R END
+: LITERAL ( x -- ) COMPILE (LITERAL) , ; immediate
+
+\ Some test code just to show that it works
+
+DEFINE ARITH-TEST ( -- )
+[ 2 ] LITERAL [ 4 ] LITERAL U+ [ 2 ] LITERAL NEGATE U- HALT
+END
+
+\ ARITH-TEST run
+
+DEFINE FIB ( n -- m)
+DUP 1- 0= OVER 0= OR NOT
+IF DUP 1- FIB SWAP 1- 1- FIB U+ THEN
+END
+
+DEFINE FIB-TEST
+[ 5 ] LITERAL FIB HALT
+END
+
+TEST run
+
+( ---------------------------------------------------------------------------------------------------------------- )
+
+Mikael Patel
+
+Aug 21, 1990, 1:53:16 PM
+
+
+Please excuse the error that worked its way into the definition of
+DOCOLON in the direct threaded forth interpreter for M68K I suggested.
+
+It SHOULD be:
+
+DOCOLON:
+MOVE.W IP, -(RP) ; Push IP onto the return stack
+MOVE.W (SP)+, IP ; Pop the new IP
+NEXT ; And go to the next thread
+
+Mikael Patel
+
