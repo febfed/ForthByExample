@@ -1,0 +1,1662 @@
+( SAVING FILE FOR REFERENCE )
+( AS IT WILL NO LONGER BE AVAILABLE ON GOOGLE GROUPS )
+
+
+Effective February 22, 2024, Google Groups will no longer support new Usenet content. Posting and subscribing will be disallowed, and new content from Usenet peers will not appear. Viewing and searching of historical data will still be supported as it is done today.
+What is Minimum Assembly Coded Words set in Forth?
+
+( ---------------------------------------------------------------------------------------------------------------- )
+
+brad....@symbios.com
+
+Aug 26, 1996, 8:00:00 AM
+
+
+I have used Forth for bringup on new machines before, and have often
+wondered what is the minimum word set required to be implemented in
+assembly language. I find myself implementing most of the easy words
+in assembly but a partner of mine on one project only wrote a few
+assembly language words a coded almost everything else directly in
+forth. Even so, he believed he could have coded more in forth.
+
+The question has practical considerations in that I have wanted lately
+to build a portable bring-up kernel which could quickly be
+re-assembled for new archiectures, with the smallest re-coding
+effort.
+
+I know that the question as stated would be impossible to answer so
+lets assume we are talking about an ANS forth subset. Assume that
+portability is much more important than execution speed. What is the
+minimum set of words which can spawn 100% of ANS Forth, What about
+90%, What about the core that is required to do ANY useful work. For
+example of the 25 words (your pick on which ones) that are absolutly
+essential, which MUST be coded in assembly?
+
+
+Brad
+
+( ---------------------------------------------------------------------------------------------------------------- )
+
+Jeff Fox
+
+Aug 26, 1996, 8:00:00 AM
+
+In article <4vsf32$3...@jupiter.ks.symbios.com> brad....@symbios.com writes:
+>I have used Forth for bringup on new machines before, and have often
+>wondered what is the minimum word set required to be implemented in
+>assembly language. I find myself implementing most of the easy words
+>in assembly but a partner of mine on one project only wrote a few
+>assembly language words a coded almost everything else directly in
+>forth. Even so, he believed he could have coded more in forth.
+>
+>The question has practical considerations in that I have wanted lately
+>to build a portable bring-up kernel which could quickly be
+>re-assembled for new archiectures, with the smallest re-coding
+>effort.
+>
+>I know that the question as stated would be impossible to answer so
+>lets assume we are talking about an ANS forth subset. Assume that
+>portability is much more important than execution speed. What is the
+
+What you are describing is eForth. eForth was designed for simplicity
+and portability. In version 1.0 only 30 words were coded in assembler.
+The reset was high level defs. The 2.0 version reduced the number to
+28 by only using BEGIN structures in the source it removed the (next)
+primitive needed in 1.0 for the FOR NEXT structures. The versions
+from 2.0 on came with a library to extend the system to ANS. The
+high level code definitions were factored so things like word
+width (bits/cell) are system equates so the only thing that must
+change are the code words.
+eForth 1.0 was released many years ago and was very sparse. No
+DOES>, no DO LOOP, no file interface etc. Ver 2.0 on up added
+these things including a word to redirect input from a file on
+the 8086 version.
+P21Forth and hforth were based on one of the unreleased eForths
+One other problem with eforth 1.0 was that it was distributed in
+MASM format and Forth source format, but to use the Forth source
+format you need a metacompiler. There are a couple of papers about
+metacompiling eForth at my web site http://www.dnai.com/~jfox
+
+
+Jeff Fox
+
+P.S. If you look at Chuck's latest chips you see that he only has 27
+opcodes on these MISC chips. They don't match exactly to the minimal
+code wordset, but there is some overlap.
+
+( ---------------------------------------------------------------------------------------------------------------- )
+
+Michael A. Losh
+
+Aug 26, 1996, 8:00:00 AM
+
+brad....@symbios.com wrote:
+>
+> I have used Forth for bringup on new machines before, and have often
+> wondered what is the minimum word set required to be implemented in
+> assembly language.
+> Brad
+
+The eForth model has a fairly minimal CODE word set. Look for it in the
+Forth Interest Group web site (http://www.forth.org/fig.html).
+--
+Mike Losh ml...@tir.com
+
+( ---------------------------------------------------------------------------------------------------------------- )
+
+Chris Jakeman
+
+Aug 27, 1996, 8:00:00 AM
+
+In article <4vsf32$3...@jupiter.ks.symbios.com>, brad....@symbios.com
+writes
+
+>I know that the question as stated would be impossible to answer so
+>lets assume we are talking about an ANS forth subset. Assume that
+>portability is much more important than execution speed. What is the
+>minimum set of words which can spawn 100% of ANS Forth, What about
+>90%, What about the core that is required to do ANY useful work. For
+>example of the 25 words (your pick on which ones) that are absolutly
+>essential, which MUST be coded in assembly?
+
+You might find MAF interesting. This is a Minimal ANS Forth which tries
+for maximum portability. It self-builds using a simple interpreter and
+is independent of:
+- stack width and location (eg. within Forth address space?)
+- character size (eg. 8 bits?)
+- address alignment (eg. even addresses?)
+- branching mechanism (eg. absolute addressing?)
+- dictionary mechanism (eg. linked list?)
+- control flow stack (eg. data stack used?)
+- number representation (eg. 2's complement?)
+E-mail me for details.
+
+Bye for now _
+_______________________| |_____
+Chris Jakeman / _Forth_Interest_Group_| |____/
+/ /_ __ ______ _ _ | | __
+at Peterborough / __/ / / / __ / | | | | | |/ /
+(a cathedral city / / / / / /_/ / | \_| | | <
+80 miles north of London) /_/ /_/ /___ / \____| |_|\_\
+Where do you come from? / /
+______________/ / United Kingdom
+Voice +44 (0)1733 346477 /_______________/ Chapter
+
+( ---------------------------------------------------------------------------------------------------------------- )
+
+Chris Jakeman
+
+Aug 27, 1996, 8:00:00 AM
+
+In article <4vsf32$3...@jupiter.ks.symbios.com>, brad....@symbios.com
+writes
+>I know that the question as stated would be impossible to answer so
+>lets assume we are talking about an ANS forth subset. Assume that
+>portability is much more important than execution speed. What is the
+>minimum set of words which can spawn 100% of ANS Forth, What about
+>90%, What about the core that is required to do ANY useful work. For
+>example of the 25 words (your pick on which ones) that are absolutly
+>essential, which MUST be coded in assembly?
+
+I think this is more interesting than useful - still here goes...
+
+Your choice of primitives depends quite a lot on what you are trying to
+achieve.
+In another posting, I mentioned MAF, a Minimal ANS Forth. This
+is an educational effort which tries for maximum portability, so it
+doesn't go for the absolute minimum. For example, VARIABLE and CONSTANT
+are provided by the kernel for clarity, though they could be defined in
+high-level. NEGATE and >BODY are provided for portability.
+
+Anyway, the MAF kernel provides the following. I've marked the ones
+with high-level alternatives with H and provided alternatives below:
+
+VARIABLES
+CORE STATE
+DP (the Data Space pointer)
+Head (word at head of dictionary)
+Latest (word most recently defined)
+
+PRIMITIVES
+H CORE EXECUTE
+Memory Access
+CORE ! @ C! C@
+CORE MOVE (it's nearly impossible to define this as a secondary
+unless you assume that characters are 1 byte wide.)
+CORE CELLS
+CORE CHARS
+CORE ALIGNED
+Stacks
+H CORE PICK ROLL DROP
+CORE DEPTH
+CORE >R R>
+H CORE R@
+RDepth (Used by QUIT to empty Return Stack)
+Dictionary
+Header (builds a name, ready for Reveal)
+CORE >BODY (Necessary for porting)
+CORE '
+ParseFind (similar to FIND but different parameters)
+CORE IMMEDIATE
+Compiling
+COMPILE, (ANS Extension)
+CORE POSTPONE
+H Branch! (Used by >Resolve and <Resolve to store branch address
+data.)
+Run-time code
+H <:> (compiled by :)
+H <Does> (compiled by DOES>
+H <Variable>
+H <Constant>
+H EXIT (compiled by ;)
+H <Branch> (compiled by ELSE)
+H <0Branch> (compiled by IF)
+H <Literal> (compiled by LITERAL)
+Calculation
+Nand (All arithmetic and logic words can be derived from
+CORE + just + and Nand. Another primitive set is +, XOR and
+AND.)
+CORE NEGATE (Needed for porting to all 3 number representations)
+DNEGATE ( " )
+Input and Output
+CORE KEY
+CORE EMIT
+CORE CR (Needed for porting to different hosts. Possibilities
+include: : CR 13 EMIT ; VMS
+: CR 10 EMIT ; Unix
+: CR 13 EMIT 10 EMIT ; DOS
+I don't think CR is a good name for this word.)
+TIB (MAF uses TIB, #TIB and >IN supplied by its host
+#TIB to implement SOURCE and EVALUATE.)
+CORE >IN
+
+That's 33 words not marked "H".
+
+The alternative high-level definitions are:
+\
+\ Given the design decision that the address of the next word shall be
+\ held on the top of the Return Stack, several primitives can have
+\ alternative definitions as secondaries:
+\
+\ : EXECUTE >R ;
+\ : EXIT R> DROP ;
+\ : : Header ] DOES> >R ; ( This one is incestuous )
+\ : <Branch> R> @ >R ; ( For absolute addressing only)
+\ : <Literal> R@ @ R> CELL+ >R ;
+
+An alternative high-level definition is also possible for DOES> as used
+in Lennart Benschop's SOD32. (Michael McGonagle pointed this out to
+me.)
+
+\ : R@ POSTPONE R> POSTPONE DUP POSTPONE >R ; IMMEDIATE
+
+\ : <Branch!> ! ; ( absolute addressing )
+\ : <Branch!> SWAP OVER - SWAP ! ; ( relative addressing )
+
+
+\ Forthwrite Aug '91 and Feb '92 offer the following : definitions,
+\ which access only the top of the stack.
+\
+\ VARIABLE Stash1 VARIABLE Stash2
+\
+\ : DROP Stash1 ! ;
+\ : 2DROP DROP Stash2 ! ;
+\ : DUP DROP Stash1 @ Stash1 @ ;
+\ : OVER 2DROP Stash2 @ Stash1 @ Stash2 @ ;
+\ : SWAP 2DROP Stash1 @ Stash2 @ ;
+\ : ROT >R SWAP R> SWAP ;
+\
+\ : PICK DUP IF
+\ SWAP >R 1- RECURSE R> SWAP
+\ ELSE
+\ DROP DUP
+\ THEN ;
+\
+\ : ROLL DUP 1 > IF
+\ SWAP >R 1- RECURSE R> SWAP
+\ ELSE
+\ IF SWAP THEN
+\ THEN ;
+
+( ---------------------------------------------------------------------------------------------------------------- )
+
+Marc de Groot
+
+Aug 29, 1996, 8:00:00 AM
+
+brad....@symbios.com wrote:
+>
+> I have used Forth for bringup on new machines before, and have often
+> wondered what is the minimum word set required to be implemented in
+> assembly language.
+
+About seven years ago I remember seeing a list of Forth primitives that
+was claimed to be a minimum set. If I remember correctly, there were
+seven of them.
+
+Was it Mikael Patel who posted that list? My memory is dim.
+
+-- 
+Marc de Groot ma...@immersive.com
+San Francisco http://www.immersive.com/marc/
+- Real VR for the net! Check out http://www.immersive.com -
+"I don't believe in a higher power. I believe in a larger wattage."
+
+( ---------------------------------------------------------------------------------------------------------------- )
+
+Bernd Paysan
+
+Aug 30, 1996, 8:00:00 AM
+
+
+Marc de Groot wrote:
+>
+> brad....@symbios.com wrote:
+> >
+> > I have used Forth for bringup on new machines before, and have often
+> > wondered what is the minimum word set required to be implemented in
+> > assembly language.
+>
+> About seven years ago I remember seeing a list of Forth primitives that
+> was claimed to be a minimum set. If I remember correctly, there were
+> seven of them.
+>
+> Was it Mikael Patel who posted that list? My memory is dim.
+
+My name memory is dim, too. But I remember the words (and the implicit
+assumption that it's a threaded system with empty docol (everything is
+colon)):
+
+SP@
+RP@
+@
+!
++ (or 2*)
+NAND
+0=
+EXIT
+
+Someone claimed that you can synthesize every logic operation out of
+NAND, but this is not true: you can't do left shifts (that's what + is
+for) and right shifts (that's what 0= is for).
+
+I thought, on the original list there was LIT, but look:
+
+: DUP SP@ @ ;
+: -1 ( x -- x 0 ) DUP DUP NAND DUP DUP NAND NAND ;
+: 1 -1 DUP + DUP NAND ;
+: 2 1 DUP + ;
+\ : 4 2 DUP + ; for 4 bytes/cell Forth
+: LIT RP@ @ 2 ( 4 ) + DUP RP@ ! @ ;
+
+And now we can do real stuff, since we can define variables. Their body
+consists of LIT <address> EXIT.
+
+Other important words:
+
+: AND NAND DUP NAND ;
+
+: BRANCH RP@ @ DUP @ + 2 + RP@ ! ;
+: ?BRANCH 0= RP@ @ @ AND RP@ @ + 2 + RP@ ! ;
+
+I think it would be really interesting do do this to a real end (e.g.
+the 30 eForth primitives), and try this. Should be dammed slow!
+
+BTW: RP! and SP! are done with looping, because you can either push or
+pop one element form these stacks per time. If you carefully save those
+parts you want to overwrite while processing, you can do it
+non-destructive (e.g. for a task switcher), as long as you don't
+overwrite the location that performs the RP! or SP! code ;-).
+
+-- 
+Bernd Paysan
+"Late answers are wrong answers!"
+http://www.informatik.tu-muenchen.de/~paysan/
+
+( ---------------------------------------------------------------------------------------------------------------- )
+
+ech...@interlog.com
+
+Aug 31, 1996, 8:00:00 AM
+
+
+In <32261F9C...@informatik.tu-muenchen.de>, Bernd Paysan <pay...@informatik.tu-muenchen.de> writes:
+>
+>Someone claimed that you can synthesize every logic operation out of
+>NAND, but this is not true: you can't do left shifts (that's what + is
+>for) and right shifts (that's what 0= is for).
+>
+
+A second thought, having just said that logical shifts aren't logic
+operations:
+Shifters are built from logic gates; any logic gate that isn't a
+NAND can be replaced by a combination of NAND gates, so ...
+
+Elliott Chapin ech...@interlog.com
+
+( ---------------------------------------------------------------------------------------------------------------- )
+
+ech...@interlog.com
+
+Aug 31, 1996, 8:00:00 AM
+
+
+In <32261F9C...@informatik.tu-muenchen.de>, Bernd Paysan <pay...@informatik.tu-muenchen.de> writes:
+>
+>Someone claimed that you can synthesize every logic operation out of
+>NAND, but this is not true: you can't do left shifts (that's what + is
+>for) and right shifts (that's what 0= is for).
+>
+
+I don't think that logical shifts are logic operations at all, so there's
+really no contradiction.
+
+Elliott Chapin ech...@interlog.com
+
+( ---------------------------------------------------------------------------------------------------------------- )
+
+Roger Ivie
+
+Aug 31, 1996, 8:00:00 AM
+
+
+In article <32261F9C...@informatik.tu-muenchen.de>, Bernd Paysan <pay...@informatik.tu-muenchen.de> writes:
+> My name memory is dim, too. But I remember the words (and the implicit
+> assumption that it's a threaded system with empty docol (everything is
+> colon)):
+[snip]
+> + (or 2*)
+[snip]
+
+FWIW, I'd choose - over + as a primitive. Why?
+
+: + 0 swap - - ;
+: drop dup - - ;
+
+It just seems more useful.
+-- 
+-------------------------+---------------------------------------------
+Roger Ivie | "Irony can be pretty ironic sometimes."
+iv...@cc.usu.edu | -- Frank Drebin
+http://cc.usu.edu/~ivie/ |
+
+( ---------------------------------------------------------------------------------------------------------------- )
+
+Paul E. Bennett
+
+Aug 31, 1996, 8:00:00 AM
+
+
+In article <32261F9C...@informatik.tu-muenchen.de>
+pay...@informatik.tu-muenchen.de "Bernd Paysan" writes:
+
+> Marc de Groot wrote:
+> >
+> > brad....@symbios.com wrote:
+> > >
+> > > I have used Forth for bringup on new machines before, and have often
+> > > wondered what is the minimum word set required to be implemented in
+> > > assembly language.
+> >
+> > About seven years ago I remember seeing a list of Forth primitives that
+> > was claimed to be a minimum set. If I remember correctly, there were
+> > seven of them.
+> >
+> > Was it Mikael Patel who posted that list? My memory is dim.
+>
+
+> My name memory is dim, too. But I remember the words (and the implicit
+> assumption that it's a threaded system with empty docol (everything is
+> colon)):
+>
+
+> SP@
+> RP@
+> @
+> !
+> + (or 2*)
+
+: 2* dup + ;
+
+> NAND
+> 0=
+> EXIT
+
+
+>
+> Someone claimed that you can synthesize every logic operation out of
+> NAND, but this is not true: you can't do left shifts (that's what + is
+> for) and right shifts (that's what 0= is for).
+
+Perhaps my brain has failed to appreciate how a 0= can do right shifts (it was
+a long day yesterday and a busy one today also and I think I need more time
+to appreciate the subtlety. Please explain.
+
+
+
+> I thought, on the original list there was LIT, but look:
+>
+> : DUP SP@ @ ;
+> : -1 ( x -- x 0 ) DUP DUP NAND DUP DUP NAND NAND ;
+> : 1 -1 DUP + DUP NAND ;
+> : 2 1 DUP + ;
+> \ : 4 2 DUP + ; for 4 bytes/cell Forth
+> : LIT RP@ @ 2 ( 4 ) + DUP RP@ ! @ ;
+>
+> And now we can do real stuff, since we can define variables. Their body
+> consists of LIT <address> EXIT.
+>
+> Other important words:
+>
+> : AND NAND DUP NAND ;
+
+and : INVERT DUP NAND ;
+
+
+
+> : BRANCH RP@ @ DUP @ + 2 + RP@ ! ;
+> : ?BRANCH 0= RP@ @ @ AND RP@ @ + 2 + RP@ ! ;
+>
+> I think it would be really interesting do do this to a real end (e.g.
+> the 30 eForth primitives), and try this. Should be dammed slow!
+
+... but isn't this what Chris Jakeman has done for MAF.
+
+-- 
+Paul E. Bennett <p...@transcontech.co.uk>
+Transport Control Technology Ltd.
+Tel: +44 (0)117-9499861
+Going Forth Safely
+
+( ---------------------------------------------------------------------------------------------------------------- )
+
+Norman L. DeForest
+
+Sep 1, 1996, 8:00:00 AM
+
+
+Chris Jakeman (cjak...@apvpeter.demon.co.uk) wrote:
+
+: Your choice of primitives depends quite a lot on what you are trying to
+
+
+: achieve.
+: In another posting, I mentioned MAF, a Minimal ANS Forth. This
+: is an educational effort which tries for maximum portability, so it
+: doesn't go for the absolute minimum. For example, VARIABLE and CONSTANT
+: are provided by the kernel for clarity, though they could be defined in
+: high-level. NEGATE and >BODY are provided for portability.
+
+: Anyway, the MAF kernel provides the following. I've marked the ones
+: with high-level alternatives with H and provided alternatives below:
+
+[ snip -- a lot of words listed or defined ]
+
+: Bye for now _
+
+
+: _______________________| |_____
+: Chris Jakeman / _Forth_Interest_Group_| |____/
+: / /_ __ ______ _ _ | | __
+: at Peterborough / __/ / / / __ / | | | | | |/ /
+: (a cathedral city / / / / / /_/ / | \_| | | <
+: 80 miles north of London) /_/ /_/ /___ / \____| |_|\_\
+: Where do you come from? / /
+: ______________/ / United Kingdom
+: Voice +44 (0)1733 346477 /_______________/ Chapter
+
+
+Can a Forth be truely portable if it does not have provision for those
+processors that do *not* have memory mapped I/O?
+
+P@ ( port -- n )
+PC@ ( port -- c )
+P! ( n port -- )
+PC! ( c port -- )
+
+For machines with memory mapped I/O, these could be made synonyms for
+@ C@ ! and C! but on machines such as the Intel (and rivals) 80x86
+processors, the Z-80 and Z-8000 CPUs, the minimum word set you list
+would allow no I/O at all.
+
+Pardon me if I am missing something here.
+
+Norman De Forest
+af...@ccn.cs.dal.ca
+
+--
+
+( ---------------------------------------------------------------------------------------------------------------- )
+
+Tom Zimmer
+
+Sep 1, 1996, 8:00:00 AM
+
+
+Norman L. DeForest wrote:
+>
+> [ snip -- a lot of stuff ]
+
+>
+> Can a Forth be truely portable if it does not have provision for those
+> processors that do *not* have memory mapped I/O?
+>
+
+I don't mean to be flippant here, but Forth is portable, it is programs
+that aren't. The way a program accesses hardware is almost always
+hardware dependent. Whether it is using P@, C@ or IN, isn't really
+important, unless you want your program to be portable to someone elses
+platform, then it is usseful to document the hardware interface, so
+someone else can easily identify the things they will need to change for
+their platform differences. Portability often has more meaning when you
+are talking about computational algorithms, where no unusual I/O is
+performed. Forth does of course have some standard I/O defined, for
+things like console input and output, and file reading and writing.
+Most other things are system dependencys.
+
+Tom Zimmer
+
+( ---------------------------------------------------------------------------------------------------------------- )
+
+Mike Coughlin
+
+Sep 1, 1996, 8:00:00 AM
+
+
+In article <4vsf32$3...@jupiter.ks.symbios.com>,
+<brad....@symbios.com> wrote:
+
+> . . . What is the
+
+
+>minimum set of words which can spawn 100% of ANS Forth, What about
+>90%, What about the core that is required to do ANY useful work. For
+>example of the 25 words (your pick on which ones) that are absolutly
+>essential, which MUST be coded in assembly?
+
+I think you do not understand what ANS Forth is all about.
+Maybe nobody understands what ANS Forth is all about. The ANS
+Forth committee could not agree on the words for many important
+Forth operations. The ANS document is a list of Forth words
+that might be used to produce portable Forth listings. Nobody
+checked to see if they had all the words needed to write all
+possible programs, or if they even had enough words to write a
+useful Forth system. I don't think anybody would ever want to
+try to write a useful Forth system with just the words in ANS
+Forth.
+
+So your task is not helped by mentioning ANS Forth. If your
+goal is to be able to create all ANS Forth words, then you will
+not have a minimal Forth system. If your goal is to have a
+minimal portable useful Forth system, then it will not be ANS
+compliant.
+
+You must decide what you need first before you can decide
+what is minimal. For me the choice is clear, but I spent a long
+time thinking about it. A minimal useful Forth must be able to
+compile itself, in addition to be able to do input and output
+from a console as well as a disk drive. For portability, it
+should run on any platform and produce object code that will
+run on any other platform. Maybe if I think about this for
+another ten years I could find out how to write such a system.
+
+Limit yourself to having a Forth system that runs on one
+particular platform and lets you write code for whatever your
+favorite processors are now and for whatever new processors
+might come along. Then make a boot or bios eprom (or send the
+code thru serial ports). Notice how this would let you have a
+smaller system than the one above.
+
+-- 
+Michael Coughlin mi...@gnu.ai.mit.edu Cambridge, MA USA
+
+( ---------------------------------------------------------------------------------------------------------------- )
+
+
+Ewald Pfau
+
+Sep 1, 1996, 8:00:00 AM
+
+
+mi...@gnu.ai.mit.edu (Mike Coughlin) wrote:
+
+[..]
+MC> The ANS document is a list of Forth words
+MC> that might be used to produce portable Forth listings. Nobody
+MC> checked to see if they had all the words needed to write all
+MC> possible programs, or if they even had enough words to write a
+MC> useful Forth system. I don't think anybody would ever want to try to
+MC> write a useful Forth system with just the words in ANS Forth.
+
+To hand on this information: The test to "write a useful Forth system" starting
+from ANS is done. About somewhere between '90 and '92. (I'm not eager to write
+_demonstration_systems_ all the time, so I can say, the resulting
+implementation "is something useful" - it is running some challenging
+applications).
+
+What is missing in ANS is an extension to declare in the compiling machine an
+assembler access to memory words (@ ! HERE , C, ALLOT ALIGN), so those may be
+remapped. The rest of ANS holds to have the compiling machine be directly the
+output again of compiling. I work with two executables, small and extended; the
+above holds for all four permutations.
+
+You need file-i/o, wordlist handling, one parsing word (S" or PARSE) and access
+to the input stream, preferrably SAVE- and RESTORE-INPUT. The rest may be done
+with the core wordset.
+
+Yes, there are ANS systems by use of which some work is done, since that time
+(here it is all wordsets but no Floating Point - I never needed it).
+
+( ---------------------------------------------------------------------------------------------------------------- )
+
+Jonah Thomas
+
+Sep 1, 1996, 8:00:00 AM
+
+
+In <50caas$d...@life.ai.mit.edu> mi...@gnu.ai.mit.edu (Mike Coughlin)
+wrote:
+
+> You must decide what you need first before you can decide
+>what is minimal. For me the choice is clear, but I spent a long
+>time thinking about it. A minimal useful Forth must be able to
+>compile itself, in addition to be able to do input and output
+>from a console as well as a disk drive.
+
+ANS Forth does console and file I/O. Enough is left unspecified for
+the file I/O to fit easily into a variety of operating systems. If you
+would like to write a prototype Forth way to assign strings to files
+that could then be implemented on the various OSs, maybe people would
+be interested.
+
+ANS Forth doesn't specify anything about metacompilation, so you can
+write your metacompiler however you like and it won't be incompatible
+with the Standard.
+
+>For portability, it
+>should run on any platform and produce object code that will
+>run on any other platform. Maybe if I think about this for
+>another ten years I could find out how to write such a system.
+
+Mitch Bradley's Open Firmware system does this, at some cost in speed
+but none in compactness. It is ANS compliant with some extensions.
+If you want to do that sort of thing this would be an excellent
+starting point.
+
+( ---------------------------------------------------------------------------------------------------------------- )
+
+H.-Peter Recktenwald
+
+Sep 1, 1996, 8:00:00 AM
+
+
+Bernd Paysan <pay...@informatik.tu-muenchen.de> wrote:
+
+>Someone claimed that you can synthesize every logic operation out of
+>NAND, but this is not true: you can't do left shifts (that's what + is
+
+°°°°°°°°°°°
+Shifting left as a binary (logic) operation is adding a number to
+itself, adding is done by a "half adder" plus carry, a half adder very
+simply can be built of nand´s (this is elementary digital design),
+thus, that "someone" was right:
+That "someone" (despite others) was a certain ..DeMorgan..
+Remember???
+
+-- wrong answers are late answers --
+
+- ph...@berlin.snafu.de - .hpr -
+
+( ---------------------------------------------------------------------------------------------------------------- )
+
+Paul Frenger MD
+
+Sep 2, 1996, 8:00:00 AM
+
+
+Mike Coughlin <mi...@gnu.ai.mit.edu> wrote:
+
+> For portability, it [portable Forth programs]
+
+> should run on any platform and produce object code that will
+> run on any other platform. Maybe if I think about this for
+> another ten years I could find out how to write such a system.
+
+Jonah Thomas <JETh...@ix.netcom.com> replied:
+
+>> Mitch Bradley's Open Firmware system does this, at some cost in speed
+>> but none in compactness. It is ANS compliant with some extensions.
+>> If you want to do that sort of thing this would be an excellent
+>> starting point.
+
+Paul Frenger <pfre...@ix.netcom.com> replies:
+
+Who says you have to give up speedy execution to use bytecode? I like the
+idea embodied in FCode for Open Firmware. Very transportable indeed.
+But don't forget that you DON'T HAVE TO INTERPRET FCode ... FCode is
+just an intermediate representation of your Forth source code, very
+compact and standardized for "ANY" target machine. Interpret FCode if
+you wish; it will be a little slower than fully compiled object code
+(IE: UCSD Pascal & p-code; IE: token-threaded Forth). But you are free
+to locally compile the FCode for your machine (ie: try subroutine
+threading) and run it as fast as you can.
+
+I understand that Java will offer this as a feature: the ability to
+force local compilation (on recipient's CPU) of selected bytecode threads
+where an applet needs extra speed. This sounds like a "native code compiler"
+utility function ... no assembly code required, but much faster than Java
+bytecode. If it can be done in Java, should be possible in Forth (or FCode).
+
+( ---------------------------------------------------------------------------------------------------------------- )
+
+Paul Frenger MD
+
+Sep 2, 1996, 8:00:00 AM
+
+Ewald Pfau <e...@ear.co.at> wrote:
+
+> What is missing in ANS is an extension to declare in the compiling machine an
+> assembler access to memory words (@ ! HERE , C, ALLOT ALIGN), so those may be
+> remapped. The rest of ANS holds to have the compiling machine be directly the
+> output again of compiling ...
+
+Paul Frenger <pfre...@ix.netcom.com> replies:
+
+What is missing from ANS Forth is a VIRTUAL MACHINE (VM).
+The designers of ANS Forth assiduously avoided any hint of a VM
+with the thought that VM issues held back the success of previous
+Forth standards, and that none of the hardware Forth chips could
+easily be mapped onto any reasonable software VM. By cutting out
+the VM, a one-size-fits-all standard could be produced. No Procrustean
+VM for ANS!
+
+But, real-world Forth implementors are FORCED to rely on either
+a software VM for their CISC chips, or use a hardware or hybrid
+VM on their RISC or Forth chips. How else can you do it?
+
+The ANS Forth standard floats above us like a cloud, all shiny and
+pristine. Then we go and spoil it by embedding its feet in the
+dirty clay of a SPECIFIC CPU. UGH! Unpleasant (but necessary, like
+a periodic trip to the WC).
+
+(VM-less ANS Forth reminds me of the movie version of Ray Bradbury's
+book: Fahrenheit 451, where the police only show the BACK of each
+suspect's head (never the face). Some kind of translation is necessary!)
+
+Java has a VM, in no uncertain terms. Even Open Firmware has a form
+of VM in terms of its FCode compiler/interpreter design.
+
+I wonder if anyone has thought of creating a super-minimal fixed VM
+for Forth (to get back to the heart of this thread) upon which an
+"extensible VM" could be loaded, to run ANS Forth? I have seen CPU
+designs (VM's) having 3 machine instructions, or 2, or even 1! REF:
+
+P.A. Laplante, "A Novel Single Instruction Computer", ACM SIGForth
+Newsletter, Vol.2 No.4, Spring 1991.
+
+John Rible designed a 16-bit Forth CPU for an FPGA with 6000 gates.
+Chuck Moore uses fewer still. Laplante's proposal only needs a NAND
+gate architecture. A "layered" ANS Forth should accomodate proto-CPU
+architectures, Forth hardware engines, RISC machines, and CISC CPU's.
+
+Has anyone considered this line of thought?
+
+( ---------------------------------------------------------------------------------------------------------------- )
+
+Stephen J Bevan
+
+Sep 3, 1996, 8:00:00 AM
+
+In article <pfrenger-020...@hou-tx13-18.ix.netcom.com> pfre...@ix.netcom.com (Paul Frenger MD) writes:
+Java has a VM, in no uncertain terms. Even Open Firmware has a form
+of VM in terms of its FCode compiler/interpreter design.
+
+I agree that Java has a VM. However isn't this VM at a comparable
+level to ANS Forth i.e. both consist of words that manipulate an open
+stack? Therefore, it isn't clear to me why you'd want a VM for Forth
+if it is already at the level of the Java VM?
+
+( ---------------------------------------------------------------------------------------------------------------- )
+
+Norman L. DeForest
+
+Sep 3, 1996, 8:00:00 AM
+
+Roger Ivie (iv...@cc.usu.edu) wrote:
+: In article <32261F9C...@informatik.tu-muenchen.de>, Bernd Paysan <pay...@informatik.tu-muenchen.de> writes:
+: > My name memory is dim, too. But I remember the words (and the implicit
+
+: > assumption that it's a threaded system with empty docol (everything is
+: > colon)):
+: [snip]
+: > + (or 2*)
+: [snip]
+
+: FWIW, I'd choose - over + as a primitive. Why?
+
+: : + 0 swap - - ;
+: : drop dup - - ;
+
+: It just seems more useful.
+
+As an exercise, at one time, I thought about RISC chips and wondered
+*how* "Reduced" you could get a processor Instruction Set. I came up
+with a design with *one* instruction. It was a subtraction with a
+conditional jump on the result. I worked out the macros necessary to
+emulate the entire Z-80 instruction set with that *one* operation.
+
+Of course, one macro for a two-byte z-80 operation could expand to
+several hundred of these "Reduced" instructions. 8-)
+
+Norman De Forest
+af...@chebucto.ns.ca
+
+--
+
+( ---------------------------------------------------------------------------------------------------------------- )
+
+Brad Rodriguez
+
+Sep 4, 1996, 8:00:00 AM
+
+Jonah Thomas wrote:
+> ANS Forth doesn't specify anything about metacompilation, so you can
+> write your metacompiler however you like and it won't be incompatible
+> with the Standard.
+
+As I recall, ANS Forth specifically excludes metacompilation. By
+definition, no Forth metacompiler is ANS compliant. This was one of the
+pet issues I brought to the TC, and their response was something like
+"it's too big a problem to tackle now, we'll address it in the next
+revision."
+
+It _is_ a big problem. It's not enough to follow the ANS definitions for
+words; you also have to allow their interpretation semantics to be used
+at any time.
+
+-- 
+Brad Rodriguez b...@forth.org Computers on the Small Scale
+This brain for rent! See http://www.forth.org/fig/homes/brodriguez.html
+Contributing Editor, The Computer Journal... http://www.psyber.com/~tcj
+Director, Forth Interest Group........... http://www.forth.org/fig.html
+
+( ---------------------------------------------------------------------------------------------------------------- )
+
+Elizabeth Rather
+
+Sep 4, 1996, 8:00:00 AM
+
+Paul Frenger MD wrote:
+>
+> Ewald Pfau <e...@ear.co.at> wrote:
+>
+> > What is missing in ANS is an extension to declare in the compiling machine an
+> > assembler access to memory words (@ ! HERE , C, ALLOT ALIGN), so those may be
+> > remapped. The rest of ANS holds to have the compiling machine be directly the
+> > output again of compiling ...
+
+As Brad Rodriguez points out in a separate message, this is the decision of the
+TC not to address the thorny issues of cross-compiling during the first pass at
+an ANS. We fully recognize the importance of this issue, and expect it will be
+addressed in due course.
+
+> Paul Frenger <pfre...@ix.netcom.com> replies:
+>
+> What is missing from ANS Forth is a VIRTUAL MACHINE (VM).
+> The designers of ANS Forth assiduously avoided any hint of a VM
+> with the thought that VM issues held back the success of previous
+> Forth standards, and that none of the hardware Forth chips could
+> easily be mapped onto any reasonable software VM. By cutting out
+> the VM, a one-size-fits-all standard could be produced. No Procrustean
+> VM for ANS!
+>
+> But, real-world Forth implementors are FORCED to rely on either
+> a software VM for their CISC chips, or use a hardware or hybrid
+> VM on their RISC or Forth chips. How else can you do it?
+
+Those of us doing it generally prefer not to be required to work on a
+VM, because of the limitations and inefficiencies involved. For example,
+should it be a 16-bit or 32-bit VM? The former creates terrible limitations
+on addressing, arithmetic, etc. that are inappropriate to much of today's
+computing. The latter places draconian demands on small, embedded systems
+such as 8051s. To some extent, ANS Forth _did_ define a VM, with a "cell"
+width. It has various other fairly well-defined characteristics as well.
+I think the TC went about as far as is practical in defining a VM.
+
+> Java has a VM, in no uncertain terms. Even Open Firmware has a form
+> of VM in terms of its FCode compiler/interpreter design.
+
+So, in fact, does SENDIT (which Stephen Pelc et al. helped design) for
+distributed embedded systems, and the Europay Open Terminal Architecture
+for payment terminals (reported on at the Toronto/Rochester conference).
+Having had intimate, extensive experience with the latter over the past
+year, I have been delighted with its power for the specific (relatively
+narrow) purpose for which it was designed. At the same time, I'd really
+hate to be confined to it for general purpose computing.
+
+
+
+> I wonder if anyone has thought of creating a super-minimal fixed VM
+> for Forth (to get back to the heart of this thread) upon which an
+> "extensible VM" could be loaded, to run ANS Forth? I have seen CPU
+> designs (VM's) having 3 machine instructions, or 2, or even 1! REF:
+
+What would such a minimal architecture be useful for?
+
+-- 
+Elizabeth D. Rather
+FORTH, Inc. Products and services for
+111 N. Sepulveda Blvd. professional Forth programmers
+Manhattan Beach, CA 90266 since 1973. See us at:
+310-372-8493/fax 318-7130 http://www.forth.com
+
+( ---------------------------------------------------------------------------------------------------------------- )
+
+Martin Johnson
+
+Sep 4, 1996, 8:00:00 AM
+
+If youre looking for a practical answer, see RIFORTH by
+Rober Illyes. I'd call him up and ask him where he published
+it, but I'm on the modem writing this! He published it in
+either FORML or Rochester, he attends both. You might also be
+interested in his two page C source for FORTH, which draws
+heavily from his RIFORTH.
+He has approached FORTH writing from several extreme points of
+view-- fastest (ISYS FORTH for Apple II), smallest (RIFORTH for
+PC) and portable (cant remember the name).
+Marty
+
+( ---------------------------------------------------------------------------------------------------------------- )
+
+Jonah Thomas
+
+Sep 5, 1996, 8:00:00 AM
+
+In <322D7E...@headwaters.com> Brad Rodriguez <b...@headwaters.com>
+writes:
+
+>Jonah Thomas wrote:
+>> ANS Forth doesn't specify anything about metacompilation, so you can
+>> write your metacompiler however you like and it won't be incompatible
+>> with the Standard.
+
+>As I recall, ANS Forth specifically excludes metacompilation. By
+>definition, no Forth metacompiler is ANS compliant. This was one of the
+>pet issues I brought to the TC, and their response was something like
+>"it's too big a problem to tackle now, we'll address it in the next
+>revision."
+
+>It _is_ a big problem. It's not enough to follow the ANS definitions for
+>words; you also have to allow their interpretation semantics to be used
+>at any time.
+
+I may not understand the issues here. Are you saying that no metacompiler
+can be a standard program? Like, you have to redefine core commands to do
+things that are not ANS compliant, in ways that are visible to programs?
+
+I imagined that it should be possible to write a metacompiler that was
+itself a standard program, but there is no standard concerning what its
+output should be. I can imagine that maybe you can't do that using
+standard commands only in standard ways. Is that true?
+
+( ---------------------------------------------------------------------------------------------------------------- )
+
+Bernd Paysan
+
+Sep 5, 1996, 8:00:00 AM
+
+You got it wrong. You can synthesize every operation out of NANDs and
+wires, but you can't do it if you have a bitwise NAND operation as Forth
+primitive. E.g. a ribble carry isn't much more than a loop of
+
+: + BEGIN 2dup xor -rot and 2* dup 0= UNTIL drop ;
+
+So, now write 2* using only the Forth word NAND (bitwise), and stack
+operations. You'll fail. It hasn't anything to do with De Morgan, but
+with the inability to address bitwise.
+
+BTW: You don't need any NAND for a binary shift left, a bunch of wires
+does this job.
+
+( ---------------------------------------------------------------------------------------------------------------- )
+
+Bernd Paysan
+
+Sep 5, 1996, 8:00:00 AM
+
+Norman L. DeForest wrote:
+> As an exercise, at one time, I thought about RISC chips and wondered
+> *how* "Reduced" you could get a processor Instruction Set. I came up
+> with a design with *one* instruction. It was a subtraction with a
+> conditional jump on the result. I worked out the macros necessary to
+> emulate the entire Z-80 instruction set with that *one* operation.
+
+The problem with your one-instruction ISA is that you need operands.
+Three in your case (source, destination, branch target). So while you
+need 0 bits for the instruction selection, you need 48 bits (on a 16 bit
+system) for the whole instruction. The minimal Forth words are all
+zero-address instructions. This is a different task, and I think my set
+is minimal (SP@ RP@ @ ! + 0= NAND EXIT, replace + and 0= with 2/ and 2*
+if you like).
+
+( ---------------------------------------------------------------------------------------------------------------- )
+
+Anton Ertl
+
+Sep 6, 1996, 8:00:00 AM
+
+In article <50ldb4$6...@sjx-ixn2.ix.netcom.com>, JETh...@ix.netcom.com (Jonah Thomas) writes:
+> I may not understand the issues here. Are you saying that no metacompiler
+> can be a standard program?
+
+I think Brad Rodriguez means that a metacompiler would not be a
+standard system (at least not in metacompilation mode).
+
+- anton
+-- 
+M. Anton Ertl Some things have to be seen to be believed
+an...@mips.complang.tuwien.ac.at Most things have to be believed to be seen
+http://www.complang.tuwien.ac.at/anton/home.html
+
+( ---------------------------------------------------------------------------------------------------------------- )
+
+Paul E. Bennett
+
+Sep 6, 1996, 8:00:00 AM
+
+In article <322A0123...@informatik.tu-muenchen.de>
+pay...@informatik.tu-muenchen.de "Bernd Paysan" writes:
+
+> Paul E. Bennett wrote:
+> > Perhaps my brain has failed to appreciate how a 0= can do right shifts (it was> > a long day yesterday and a busy one today also and I think I need more time
+> > to appreciate the subtlety. Please explain.
+>
+
+> : 2/ ( n -- n>>1 ) 0 \ 16 bit system
+> over $8000 and 0= invert $4000 and or
+> over $4000 and 0= invert $2000 and or
+> ...
+> swap 2 and 0= invert 1 and or ;
+
+Oh, I see what was being got at now. I did say it had been a very long day.
+I was trying to figure out how it could be construed that 0= was equivalent
+to a right shift which was how it appeared to my (at the time) tired brain.
+
+> If you don't have 0=, there is no way (using the list above) to do 2/,
+> so 0= (or 2/) is essential.
+
+( ---------------------------------------------------------------------------------------------------------------- )
+
+Paul E. Bennett
+
+Sep 6, 1996, 8:00:00 AM
+
+In article <pfrenger-020...@hou-tx13-18.ix.netcom.com>
+
+pfre...@ix.netcom.com "Paul Frenger MD" writes:
+
+> I wonder if anyone has thought of creating a super-minimal fixed VM
+> for Forth (to get back to the heart of this thread) upon which an
+> "extensible VM" could be loaded, to run ANS Forth? I have seen CPU
+> designs (VM's) having 3 machine instructions, or 2, or even 1! REF:
+>
+
+> P.A. Laplante, "A Novel Single Instruction Computer", ACM SIGForth
+> Newsletter, Vol.2 No.4, Spring 1991.
+>
+> John Rible designed a 16-bit Forth CPU for an FPGA with 6000 gates.
+> Chuck Moore uses fewer still. Laplante's proposal only needs a NAND
+> gate architecture. A "layered" ANS Forth should accomodate proto-CPU
+> architectures, Forth hardware engines, RISC machines, and CISC CPU's.
+>
+> Has anyone considered this line of thought?
+
+Yes, although I am looking at a few other things besides the underlying VM
+itself. From my reading of the standard so far, although they do not
+explicitly describe a VM they do tend to hint at one (ever so subtly). It may
+take some working through and maybe making one or two assumptions but you
+could probably find a VM specification buried in there somewhere.
+
+( ---------------------------------------------------------------------------------------------------------------- )
+
+Ewald Pfau
+
+Sep 6, 1996, 8:00:00 AM
+
+pfre...@ix.netcom.com (Paul Frenger MD) wrote:
+
+PFM> Ewald Pfau <e...@ear.co.at> wrote:
+
+> What is missing in ANS is an extension to declare in the compiling machine
+an
+> assembler access to memory words (@ ! HERE , C, ALLOT ALIGN), so those may
+be
+> remapped. The rest of ANS holds to have the compiling machine be directly
+the
+> output again of compiling ...
+
+Let me first add to that information I gave: The above named extension is
+needed only, if the same assembler is used for code generation as for the above
+purpose. If an assembler is re-written for the purpose, so that point
+disappears. It means: ANS holds for meta-compilation. Straight-on.
+
+You may output from a 16 bit executable with 40 kB code (so 24 are left) to a
+50 kB rebuilt run-time, which contains all tools, debugger, tasker, and so on,
+in one pass. "The application" here, this is a meta-compiler. I add this to
+make sure this is seen right: it is not just about demonstration of some
+property, but heavy use of an environment. Cross compilation has been done
+between PC, QDOS for 68000 CPU (I did not put in the effort to make the
+environment smart enough to compile 32 bit from a 16 bit machine, so 32 bit is
+compiled from a 32 bit machine), and to 8051-standalone.
+
+PFM> Paul Frenger <pfre...@ix.netcom.com> replies:
+
+PFM> What is missing from ANS Forth is a VIRTUAL MACHINE (VM).
+PFM> The designers of ANS Forth assiduously avoided any hint of a VM
+PFM> with the thought that VM issues held back the success of previous
+PFM> Forth standards, and that none of the hardware Forth chips could
+PFM> easily be mapped onto any reasonable software VM. By cutting out
+PFM> the VM, a one-size-fits-all standard could be produced. No
+PFM> Procrustean VM for ANS!
+
+The term "virtual machine" may allow several interpretations. For Forth, the
+term has always been used with the (still common) meaning: put a VM upon a
+platform - the "word machine" for the outer interpreter.
+
+This meaning for "VM" has its representation in mechanised messaging systems,
+as Postscript printer files or HTML files. Here, a VM is "the server" of such
+an environment. By its meaning, the term for sure holds. Took as a bare
+technical term, it may not be understood that easily anymore.
+
+Another interpretation is more common in general, now, as it seems, and I
+agree: the inner interpreter machine of Forth is not there any more, by common
+specification. This were the "NEXT"-machine for threaded code.
+
+But threaded code has never been "normalized" for its contents to have specific
+meaning. Instead, it might be addressed by using its specific properties, to
+contain lists of CFAs, literals, branch offsets and strings. Not the values are
+known but the relationship how the values are to be understood.
+
+A VM as understood as a technical term instead specifies the contained values
+plus that relationship. This has never be done for Forth threaded code.
+
+( ---------------------------------------------------------------------------------------------------------------- )
+
+H.-Peter Recktenwald
+
+Sep 6, 1996, 8:00:00 AM
+
+UweK...@lionbbs.this.domain.is.not.set (Uwe Kloss) wrote:
+
+
+>from the 0-position-bits of both operands and 'half added' to the
+>1-position-bits of both operands.
+
+>To do THAT in a program (not by wire) you need some kind of shifting!
+°°°°°°°°°°°°°°°°°°°°°
+No.
+
+( ---------------------------------------------------------------------------------------------------------------- )
+
+Uwe Kloss
+
+Sep 7, 1996, 8:00:00 AM
+
+Hey you guys seem to mix two things:
+
+1. logical operations/commands as used in FORTH
+i.e. you combine
+bit 0 of A with bit 0 of B
+bit 1 of A with bit 1 of B
+etc.
+
+2. logical operations/circuits done in hardware
+i. e. you CAN combine
+bit 0 of A with bit 1 of B
+etc.
+
+Ofcourse shifting circuits are made of simple logic gates!
+But the locgic operations of FORTH are _NOT_ logic gates!
+
+In article <50icss$m...@unlisys.unlisys.net> ph...@berlin.snafu.de (H.-Peter Recktenwald) writes:
+> Bernd Paysan <pay...@informatik.tu-muenchen.de> wrote:
+> >Someone claimed that you can synthesize every logic operation out of
+> >NAND, but this is not true: you can't do left shifts (that's what + is
+> °°°°°°°°°°°
+> Shifting left as a binary (logic) operation is adding a number to
+> itself, adding is done by a "half adder" plus carry, a half adder very
+> simply can be built of nand´s (this is elementary digital design),
+
+The elemetary digital design will show that a 'carry' bit is generated
+
+
+from the 0-position-bits of both operands and 'half added' to the
+1-position-bits of both operands.
+
+To do THAT in a program (not by wire) you need some kind of shifting!
+
+Uwe
+-- 
+A conclusion is simply the place where someone got tired of thinking.
+- - - - - - - - - - - - - - - - - -
+Uwe Kloss Tel.: 0531/336908
+Rebenring 47 38106 Braunschweig
+-- 
+A conclusion is simply the place where someone got tired of thinking.
+- - - - - - - - - - - - - - - - - -
+Uwe Kloss Tel.: 0531/336908
+Rebenring 47 38106 Braunschweig
+
+( ---------------------------------------------------------------------------------------------------------------- )
+
+Uwe Kloss
+
+Sep 9, 1996, 8:00:00 AM
+
+In article <50vcop$h...@unlisys.unlisys.net> ph...@berlin.snafu.de (H.-Peter Recktenwald) writes:
+
+>from the 0-position-bits of both operands and 'half added' to the
+>1-position-bits of both operands.
+
+>To do THAT in a program (not by wire) you need some kind of shifting!
+
+°°°°°°°°°°°°°°°°°°°°°
+No.
+
+Ok!
+
+To make it more clear, you need something that transfers
+(shifts) information between bit positions!
+
+Either explicit shifting operations or an emulation of it using
+bitmasks and 0= as explained soewhere else!
+
+
+Uwe
+
+( ---------------------------------------------------------------------------------------------------------------- )
+
+Mike Coughlin
+
+Sep 10, 1996, 8:00:00 AM
+
+In article <322D57...@forth.com>,
+
+Elizabeth Rather <era...@forth.com> wrote:
+
+>Those of us doing it generally prefer not to be required to work on a
+>VM, because of the limitations and inefficiencies involved. For example,
+>should it be a 16-bit or 32-bit VM? The former creates terrible limitations
+>on addressing, arithmetic, etc. that are inappropriate to much of today's
+>computing. The latter places draconian demands on small, embedded systems
+>such as 8051s. To some extent, ANS Forth _did_ define a VM, with a "cell"
+>width. It has various other fairly well-defined characteristics as well.
+>I think the TC went about as far as is practical in defining a VM.
+
+When I first started to learn about Forth, I found it to be
+exteremely confusing. Then I read about the Forth virtual
+machine and things became much clearer. The omission of the
+Forth VM from the ANS standard is a big mistake as far as I am
+concerned. But the standard document is only meant to be
+understood by experts, as I sometimes remind beginners who are
+interested in ANS Forth.
+
+I think the Forth virtual machine should be the subject
+of an article in Forth Dimensions. I'm sure the standard
+committee debated this extensively. Their conclusions
+should not go unrecorded. What was the Forth VM in the old
+days and why does it need to be something different today?
+What exactly would an ANS virtual machine with a "cell"
+width be anyway? I am sure that such information would
+still be of great help to beginning Forth students.
+
+( ---------------------------------------------------------------------------------------------------------------- )
+
+H.-Peter Recktenwald
+
+Sep 11, 1996, 8:00:00 AM
+
+ro...@lionbbs.this.domain.is.not.set (Uwe Kloss) wrote:
+
+>To make it more clear, you need something that transfers
+>(shifts) information between bit positions!
+
+The adder _is_ the shifter.
+
+Getting into (fruitless, to my opinion, anyway) "fundamentals" I
+expect you not to stop somwhere just because it fits your imagination
+comfortably. In other words, how do you think even your computer does
+all that work for you...
+
+Yours,
+Peter
+
+( ---------------------------------------------------------------------------------------------------------------- )
+
+Andrew Sieber
+
+Sep 12, 1996, 8:00:00 AM
+
+> When I first started to learn about Forth, I found it to be
+> exteremely confusing. Then I read about the Forth virtual
+> machine and things became much clearer.
+
+Where did you read about the Virtual Machine for Forth? I am about
+finished reading _Starting Forth_ and would like to learn more. I also
+would like to know the differences between Forth-83 and Ans Forth
+(_Starting Forth_ 2nd Ed, which I have, is written for Forth-83.) I
+read a bunch of the last Ans Standard Forth draft, including the F-83 to
+Ans Forth differences, and came away as I usually do from technical
+standards documents with glazed over eyes and understanding little.
+If you know of a good on-line or printed source of info about this, I'd
+be grateful if you would share it.
+--Andrew Sieber
+
+( ---------------------------------------------------------------------------------------------------------------- )
+
+Paul E. Bennett
+
+Sep 14, 1996, 8:00:00 AM
+
+In article <32378E...@bbs.wa4yse.ampr.org>
+kd4...@bbs.wa4yse.ampr.org "Andrew Sieber" writes:
+
+You could try Phil Koopmans book on Stack Processors. I understand a version
+is now on-line
+
+( ---------------------------------------------------------------------------------------------------------------- )
+
+Andrew Sieber
+
+Sep 14, 1996, 8:00:00 AM
+
+Do you happen to have the URL to the online version of that book? (Phil Koopman's book
+on stack processors.) Would love to have it if you do.
+Thanks.
+--Andrew Sieber
+
+( ---------------------------------------------------------------------------------------------------------------- )
+
+John Verne - CNED/F94
+
+Sep 14, 1996, 8:00:00 AM
+
+Andrew Sieber (kd4...@bbs.wa4yse.ampr.org) said:
+: If you know of a good on-line or printed source of info about this, I'd
+: be grateful if you would share it.
+
+I believe the only living example of a "Starting Forth" type book
+featuring ANS-Forth is Jack Woehr's "Forth: The New Model", which IMHO is
+a fine piece of work. It was an excellent "re-learning" book for me, and
+fun to read in the bath, as well. (I do most of my coding in water...)
+
+It's published by M&T Books, which unfortunately went out of business (I
+think), so you can pick up their titles for a song (here in Toronto...)
+at various discount book stores. IF you can find it. There was one
+place here that had a stack of F:TNM, which I found AFTER I'd paid for a
+"real" copy.
+
+If anyone wants this, and can't find it, I know there is one copy left at
+a large book store in down-town Toronto. (as well as the aformentioned
+discount stores, maybe).
+
+--
+
+Jon D. Verne <jve...@acs.ryerson.ca> or <be...@freenet.toronto.on.ca>
+
+God is real, unless specifically declared integer.
+
+( ---------------------------------------------------------------------------------------------------------------- )
+
+Bernd Paysan
+
+Sep 14, 1996, 8:00:00 AM
+
+H.-Peter Recktenwald wrote:
+
+>
+> UweK...@lionbbs.this.domain.is.not.set (Uwe Kloss) wrote:
+>
+> >from the 0-position-bits of both operands and 'half added' to the
+> >1-position-bits of both operands.
+>
+> >To do THAT in a program (not by wire) you need some kind of shifting!
+> °°°°°°°°°°°°°°°°°°°°°
+> No.
+
+Hey, you can't proclaim something (which is obviously false) without
+explaining. How do you do "add" given only stack operations and the word
+NAND, defined in ANS Forth:
+
+: NAND ( n1 n2 -- n3 ) AND INVERT ;
+
+For starting, generate just the following:
+
+: bit0->bit1 ( n1 -- n2 ) 1 and IF 2 ELSE 0 THEN ;
+
+No 0=, no ?BRANCH!
+
+Note: since a Forth cell is both the size of an address and of the basic
+number format, you can't use an addition table like the IBM 1620 (CADET
+- can't add, doesn't even try), and even this CADET had to use a shift
+operation (shift a digit to the left) to form the table offset.
+
+( ---------------------------------------------------------------------------------------------------------------- )
+
+Bernd Paysan
+Sep 14, 1996, 8:00:00 AM
+
+H.-Peter Recktenwald wrote:
+>
+> ro...@lionbbs.this.domain.is.not.set (Uwe Kloss) wrote:
+>
+> >To make it more clear, you need something that transfers
+> >(shifts) information between bit positions!
+>
+> The adder _is_ the shifter.
+
+*FLAME ON*
+Oh, man, switch your brain on! We don't have an adder at the NAND-only
+stage! We have just bitwise NAND!!! bit 0 NAND bit0 , bit 1 NAND bit 1,
+no bit 0 NAND bit 1!!! So we have no possibility to compute any logic
+function that has different bit positions in the logic flow path (since
+you dropped the shifter), so we can't build an adder.
+*FLAME OFF*
+
+( ---------------------------------------------------------------------------------------------------------------- )
+
+Achim Gratz
+Sep 16, 1996, 8:00:00 AM
+
+>>>>> "Bernd" == Bernd Paysan <pay...@informatik.tu-muenchen.de> writes:
+
+Bernd> *FLAME ON*
+[...]
+Bernd> *FLAME OFF*
+
+Too much blood in the caffeine system lately? ;-)
+
+
+-- 
+Achim Gratz.
+
+--+<[ It's the small pleasures that make life so miserable. ]>+--
+WWW: http://www.inf.tu-dresden.de/~ag7/{english/}
+E-Mail: gr...@ite.inf.tu-dresden.de
+Phone: +49 351 463 - 8325 (new number as of 7/14/96)
+
+( ---------------------------------------------------------------------------------------------------------------- )
+
+Bernd Paysan
+
+Sep 16, 1996, 8:00:00 AM
+
+Achim Gratz wrote:
+>
+> >>>>> "Bernd" == Bernd Paysan <pay...@informatik.tu-muenchen.de> writes:
+>
+> Bernd> *FLAME ON*
+> [...]
+> Bernd> *FLAME OFF*
+>
+> Too much blood in the caffeine system lately? ;-)
+
+Yeah. I'm sorry. But I hate to write the same thing over and over again.
+
+( ---------------------------------------------------------------------------------------------------------------- 
+
+H-Peter Recktenwald
+
+Sep 18, 1996, 8:00:00 AM
+
+Bernd Paysan <pay...@informatik.tu-muenchen.de> wrote:
+
+> (since you dropped the shifter), so we can't build an adder.
+
+Peng! You cought me. - Did you?
+
+B.t.w. what about considering the data lines (bit positions) as
+parallel data, supplied in parallel. => No shifting, just combining,
+which is how a computer (not any, but many) made of real matter works.
+And, even your "shifter" is built of simple gates.
+
+Yours (burning)
+
+( ---------------------------------------------------------------------------------------------------------------- )
+
+Andrew Sieber
+
+Sep 18, 1996, 8:00:00 AM
+
+Assuming 16 bit and 2's complement,
+: ROLL-LEFT ( n -- n') DUP 2* SWAP 32768 AND IF 1+ THEN ;
+: ROLR-RIGHT ( n -- n') DUP 2/ SWAP 1 AND IF 32768 + THEN ;
+
+Haven't tested this, just wrote it off the top of my head, so
+maybe buggy. Supposed to roll left and right, anyway. Are there
+Ans Standard words that do this and are independent of number
+representation and cell size?
+
+( ---------------------------------------------------------------------------------------------------------------- )
+
+Uwe Kloss
+
+Sep 18, 1996, 8:00:00 AM
+
+In article <323B24FB...@informatik.tu-muenchen.de> Bernd Paysan <pay...@informatik.tu-muenchen.de> writes:
+
+
+H.-Peter Recktenwald wrote:
+> ro...@lionbbs.this.domain.is.not.set (Uwe Kloss) wrote:
+>
+> >To make it more clear, you need something that transfers
+> >(shifts) information between bit positions!
+>
+> The adder _is_ the shifter.
+
+*FLAME ON*
+...
+*FLAME OFF*
+Cool down!
+Just ignore it!
+
+Uwe
+
+( ---------------------------------------------------------------------------------------------------------------- )
+
+Lutz Sammer
+
+Sep 21, 1996, 8:00:00 AM
+
+mi...@gnu.ai.mit.edu (Mike Coughlin) writes:
+
+>In article <322D57...@forth.com>,
+>>Elizabeth Rather <era...@forth.com> wrote:
+
+>> [SNIP]
+
+
+>
+> I think the Forth virtual machine should be the subject
+>of an article in Forth Dimensions. I'm sure the standard
+>committee debated this extensively. Their conclusions
+>should not go unrecorded. What was the Forth VM in the old
+>days and why does it need to be something different today?
+>What exactly would an ANS virtual machine with a "cell"
+>width be anyway? I am sure that such information would
+>still be of great help to beginning Forth students.
+
+
+I think it is better to define a VM interface, not the VM self.
+
+This should solve all problems, you can explain what happens with this
+virtual machine.
+The cell width and other implementation things are hidden behind this
+interface.
+
+I suggest reading the pop11 specs. (the forth you all want)
+
+Johns
+
+
